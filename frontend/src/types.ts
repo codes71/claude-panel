@@ -150,6 +150,37 @@ export interface ClaudeMdListResponse {
   total_tokens: number;
 }
 
+// ---- Code Router ----
+export interface CcrProvider {
+  name: string;
+  api_base_url: string;
+  models: string[];
+  has_api_key: boolean;
+  transformer_names: string[];
+}
+
+export interface CcrRouterConfig {
+  default_model: string | null;
+  background: string | null;
+  think: string | null;
+  long_context: string | null;
+  long_context_threshold: number;
+  web_search: string | null;
+}
+
+export interface CcrStatus {
+  installed: boolean;
+  running: boolean;
+  config_path: string;
+}
+
+export interface CcrDashboardResponse {
+  status: CcrStatus;
+  providers: CcrProvider[];
+  router: CcrRouterConfig;
+  raw_config: Record<string, unknown> | null;
+}
+
 // ---- Visibility ----
 export interface CommandItem {
   name: string;
@@ -183,4 +214,182 @@ export interface VisibilityData {
   hooks: HookItem[];
   agents: AgentItem[];
   memory_files: MemoryFile[];
+}
+
+// ---- Marketplace ----
+export interface MarketplaceInfo {
+  id: string;
+  name: string;
+  description: string;
+  owner: string;
+  plugin_count: number;
+  last_updated: string;
+}
+
+export interface MarketplacePlugin {
+  name: string;
+  marketplace_id: string;
+  plugin_id: string;
+  description: string;
+  version: string;
+  category: string;
+  author: string;
+  homepage: string;
+  installed: boolean;
+  installed_version: string;
+  installed_scope: string;
+  enabled: boolean;
+  skills: string[];
+  agents: string[];
+  commands: string[];
+}
+
+export interface MarketplaceListResponse {
+  marketplaces: MarketplaceInfo[];
+  plugins: MarketplacePlugin[];
+  total_available: number;
+  total_installed: number;
+}
+
+export interface PluginInstallRequest {
+  plugin_id: string;
+  scope: string;
+}
+
+// ---- Providers ----
+export interface ProviderInfo {
+  id: string;
+  name: string;
+  description: string;
+  owner: string;
+  repo: string;
+  plugin_count: number;
+  last_updated: string;
+  install_location: string;
+}
+
+export interface ProviderListResponse {
+  providers: ProviderInfo[];
+}
+
+export interface ProviderAddRequest {
+  source: string;
+}
+
+export interface ProviderActionResponse {
+  name: string;
+  action: string;
+  success: boolean;
+  message: string;
+}
+
+// ---- Commands ----
+export interface CommandInfo {
+  name: string;
+  namespace: string;
+  qualified_name: string;
+  file_path: string;
+  size_bytes: number;
+  token_estimate: number;
+  description: string;
+  category: string;
+}
+
+export interface CommandDetail extends CommandInfo {
+  content: string;
+}
+
+export interface CommandNamespace {
+  name: string;
+  command_count: number;
+  total_tokens: number;
+}
+
+export interface CommandListResponse {
+  namespaces: CommandNamespace[];
+  commands: CommandInfo[];
+  total_count: number;
+  total_tokens: number;
+}
+
+export interface CommandCreateRequest {
+  namespace: string;
+  name: string;
+  content: string;
+}
+
+export interface CommandUpdateRequest {
+  content: string;
+}
+
+// ---- Skill Providers ----
+
+export interface SkillProviderInfo {
+  slug: string;
+  display_name: string;
+  owner: string;
+  repo_url: string;
+  branch: string;
+  added_at: string;
+  last_updated: string;
+  skill_count: number;
+  command_count: number;
+}
+
+export interface DiscoveredSkill {
+  id: string;
+  provider_slug: string;
+  name: string;
+  path_in_repo: string;
+  description: string;
+  token_estimate: number;
+  installed: boolean;
+  installed_scope: string;
+  installed_path: string;
+}
+
+export interface DiscoveredCommand {
+  id: string;
+  provider_slug: string;
+  name: string;
+  path_in_repo: string;
+  description: string;
+  token_estimate: number;
+  installed: boolean;
+  installed_scope: string;
+  installed_path: string;
+}
+
+export interface SkillProviderListResponse {
+  providers: SkillProviderInfo[];
+  skills: DiscoveredSkill[];
+  commands: DiscoveredCommand[];
+  total_providers: number;
+  total_skills: number;
+  total_commands: number;
+}
+
+export interface SkillProviderAddRequest {
+  source: string;
+  branch: string;
+}
+
+export interface SkillInstallRequest {
+  item_id: string;
+  scope: string;
+}
+
+export interface SkillProviderActionResponse {
+  slug: string;
+  action: string;
+  success: boolean;
+  message: string;
+}
+
+export interface SkillInstallActionResponse {
+  item_id: string;
+  action: string;
+  success: boolean;
+  message: string;
+  installed_path: string;
 }
