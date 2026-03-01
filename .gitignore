@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Node
+node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Playwright MCP logs
+.playwright-mcp/
+
+# Full-stack feature state
+.full-stack-feature/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# UV
+.python-version

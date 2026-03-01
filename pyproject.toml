@@ -1,0 +1,8 @@
+[project]
+name = "cli-agent-manager"
+version = "0.1.0"
+description = "Claude Code Configuration Manager"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = ["backend"]
