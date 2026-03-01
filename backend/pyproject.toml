@@ -1,7 +1,7 @@
 [project]
-name = "ccm-backend"
-version = "1.0.0"
-description = "Claude Code Configuration Manager - Backend"
+name = "claudeboard-backend"
+version = "1.5.0"
+description = "ClaudeBoard - Dashboard & Control Panel for Claude Code"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",
