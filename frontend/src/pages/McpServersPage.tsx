@@ -12,10 +12,6 @@ import {
   Alert,
   Snackbar,
   Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import {
@@ -44,10 +40,6 @@ export default function McpServersPage() {
   const [formCommand, setFormCommand] = useState("");
   const [formArgs, setFormArgs] = useState("");
   const [formEnv, setFormEnv] = useState("");
-  const [formScope, setFormScope] = useState<"global" | "project">("global");
-
-  const globalServers = servers.filter((s) => s.scope === "global");
-  const projectServers = servers.filter((s) => s.scope === "project");
 
   const handleToggle = (name: string, enabled: boolean) => {
     toggleServer.mutate(
@@ -123,7 +115,6 @@ export default function McpServersPage() {
     setFormCommand("");
     setFormArgs("");
     setFormEnv("");
-    setFormScope("global");
   };
 
   if (error) {
@@ -136,7 +127,7 @@ export default function McpServersPage() {
 
   const renderSection = (
     title: string,
-    items: typeof globalServers,
+    items: typeof servers,
     badge: string,
   ) => (
     <Box sx={{ mb: 4 }}>
@@ -193,8 +184,7 @@ export default function McpServersPage() {
         </Button>
       </Box>
 
-      {renderSection("Global Servers", globalServers, "~/.claude.json")}
-      {renderSection("Project Servers", projectServers, ".mcp.json")}
+      {renderSection("MCP Servers", servers, "~/.claude.json")}
 
       {/* Add Server Dialog */}
       <Dialog open={addOpen} onClose={resetForm} maxWidth="sm" fullWidth>
@@ -235,17 +225,6 @@ export default function McpServersPage() {
             rows={3}
             placeholder={"API_KEY=your-key\nDEBUG=true"}
           />
-          <FormControl size="small" fullWidth>
-            <InputLabel>Scope</InputLabel>
-            <Select
-              value={formScope}
-              label="Scope"
-              onChange={(e) => setFormScope(e.target.value as "global" | "project")}
-            >
-              <MenuItem value="global">Global (~/.claude.json)</MenuItem>
-              <MenuItem value="project">Project (.mcp.json)</MenuItem>
-            </Select>
-          </FormControl>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={resetForm} color="inherit">

@@ -75,11 +75,13 @@ export default function McpServerCard({
               {server.command} {server.args.join(" ")}
             </Typography>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <Chip
-                label={`${server.tool_count} tool${server.tool_count !== 1 ? "s" : ""}`}
-                size="small"
-                variant="outlined"
-              />
+              {server.tool_count > 0 && (
+                <Chip
+                  label={`${server.tool_count} tool${server.tool_count !== 1 ? "s" : ""}`}
+                  size="small"
+                  variant="outlined"
+                />
+              )}
               <TokenBadge tokens={server.estimated_tokens} />
             </Box>
           </Box>

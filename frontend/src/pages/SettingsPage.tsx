@@ -33,16 +33,21 @@ export default function SettingsPage() {
   const updateSettings = useUpdateSettings();
 
   const [envRows, setEnvRows] = useState<EnvRow[]>([]);
+  const [savedEnvRows, setSavedEnvRows] = useState<EnvRow[]>([]);
   const [dangerousMode, setDangerousMode] = useState(false);
   const [toast, setToast] = useState<{ msg: string; severity: "success" | "error" } | null>(null);
 
   useEffect(() => {
     if (data) {
       const rows = Object.entries(data.env).map(([key, value]) => ({ key, value }));
-      setEnvRows(rows.length > 0 ? rows : [{ key: "", value: "" }]);
+      const initial = rows.length > 0 ? rows : [{ key: "", value: "" }];
+      setEnvRows(initial);
+      setSavedEnvRows(initial);
       setDangerousMode(data.skipDangerousModePermissionPrompt);
     }
   }, [data]);
+
+  const envDirty = JSON.stringify(envRows) !== JSON.stringify(savedEnvRows);
 
   const addRow = () => setEnvRows([...envRows, { key: "", value: "" }]);
 
@@ -72,7 +77,10 @@ export default function SettingsPage() {
     updateSettings.mutate(
       { env: envUpdates },
       {
-        onSuccess: () => setToast({ msg: "Environment variables saved", severity: "success" }),
+        onSuccess: () => {
+          setSavedEnvRows([...envRows]);
+          setToast({ msg: "Environment variables saved", severity: "success" });
+        },
         onError: (e) => setToast({ msg: (e as Error).message, severity: "error" }),
       },
     );
@@ -123,9 +131,9 @@ export default function SettingsPage() {
                 startIcon={<SaveIcon />}
                 onClick={handleSaveEnv}
                 variant="contained"
-                disabled={updateSettings.isPending}
+                disabled={updateSettings.isPending || !envDirty}
               >
-                Save
+                {envDirty ? "Save*" : "Save"}
               </Button>
             </Box>
           </Box>
@@ -236,17 +244,17 @@ export default function SettingsPage() {
             <FormControlLabel
               control={
                 <Switch
-                  checked={dangerousMode}
-                  onChange={(_, checked) => handleToggleDangerous(checked)}
-                  color="warning"
+                  checked={!dangerousMode}
+                  onChange={(_, checked) => handleToggleDangerous(!checked)}
+                  color="primary"
                 />
               }
               label={
                 <Box>
-                  <Typography variant="body1">Skip dangerous mode permission prompt</Typography>
+                  <Typography variant="body1">Confirm before dangerous commands</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    When enabled, Claude Code will not ask for confirmation before running
-                    potentially dangerous commands
+                    When enabled, Claude Code asks for confirmation before running potentially
+                    dangerous commands
                   </Typography>
                 </Box>
               }

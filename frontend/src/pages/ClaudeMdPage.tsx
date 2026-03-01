@@ -285,8 +285,7 @@ export default function ClaudeMdPage() {
     );
   };
 
-  // Approximate token count for current content
-  const approxTokens = Math.ceil(content.length / 4);
+  const tokenEstimate = fileDetail?.token_estimate ?? Math.ceil(content.length / 4);
 
   if (error) {
     return (
@@ -410,7 +409,7 @@ export default function ClaudeMdPage() {
                     >
                       {selectedFile.path}
                     </Typography>
-                    <TokenBadge tokens={approxTokens} />
+                    <TokenBadge tokens={tokenEstimate} />
                   </Box>
                   <Box sx={{ display: "flex", gap: 1 }}>
                     <Button

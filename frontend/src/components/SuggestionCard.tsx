@@ -1,29 +1,28 @@
-import { Card, CardContent, Typography, Button, Box, Chip } from "@mui/material";
+import { Card, CardContent, Typography, Box, Chip } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import LightbulbIcon from "@mui/icons-material/Lightbulb";
 import type { OptimizationSuggestion } from "../types";
 import { formatTokens } from "./TokenBadge";
 
 interface SuggestionCardProps {
   suggestion: OptimizationSuggestion;
-  onApply: (suggestion: OptimizationSuggestion) => void;
 }
 
-export default function SuggestionCard({ suggestion, onApply }: SuggestionCardProps) {
+export default function SuggestionCard({ suggestion }: SuggestionCardProps) {
   return (
     <Card
       sx={{
         borderLeft: (t) => `3px solid ${t.palette.warning.main}`,
-        "&:hover": {
-          borderLeftColor: "primary.main",
-        },
       }}
     >
       <CardContent sx={{ p: 2.5, "&:last-child": { pb: 2.5 } }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-          <Typography variant="h5" sx={{ flex: 1, mr: 1 }}>
-            {suggestion.title}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1, mr: 1 }}>
+            <LightbulbIcon sx={{ fontSize: 18, color: "warning.main" }} />
+            <Typography variant="h5">
+              {suggestion.title}
+            </Typography>
+          </Box>
           <Chip
             label={`-${formatTokens(suggestion.savings_tokens)}`}
             size="small"
@@ -34,17 +33,9 @@ export default function SuggestionCard({ suggestion, onApply }: SuggestionCardPr
             }}
           />
         </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary">
           {suggestion.description}
         </Typography>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<AutoFixHighIcon />}
-          onClick={() => onApply(suggestion)}
-        >
-          Apply
-        </Button>
       </CardContent>
     </Card>
   );

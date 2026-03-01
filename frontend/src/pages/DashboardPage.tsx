@@ -1,17 +1,16 @@
-import { Box, Card, CardContent, Typography, Grid, Snackbar, Alert } from "@mui/material";
+import { Box, Card, CardContent, Typography, Grid, Alert } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import TokenIcon from "@mui/icons-material/DataUsage";
 import ExtensionIcon from "@mui/icons-material/Extension";
 import DnsIcon from "@mui/icons-material/Dns";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useState } from "react";
 import { useDashboard } from "../api/dashboard";
 import TokenBreakdownChart from "../components/TokenBreakdownChart";
 import TopConsumersChart from "../components/TopConsumersChart";
 import SuggestionCard from "../components/SuggestionCard";
 import LoadingCard from "../components/LoadingCard";
 import { formatTokens } from "../components/TokenBadge";
-import type { DashboardData, OptimizationSuggestion } from "../types";
+import type { DashboardData } from "../types";
 
 interface StatCardProps {
   label: string;
@@ -69,11 +68,6 @@ function deriveStats(data: DashboardData) {
 
 export default function DashboardPage() {
   const { data, isLoading, error } = useDashboard();
-  const [toast, setToast] = useState<string | null>(null);
-
-  const handleApply = (suggestion: OptimizationSuggestion) => {
-    setToast(`Applied: ${suggestion.title}`);
-  };
 
   if (error) {
     return (
@@ -193,7 +187,7 @@ export default function DashboardPage() {
 
       {/* Suggestions */}
       <Typography variant="h4" sx={{ mb: 2 }}>
-        Optimization Suggestions
+        Optimization Recommendations
       </Typography>
       {isLoading ? (
         <Grid container spacing={2}>
@@ -205,28 +199,18 @@ export default function DashboardPage() {
         </Grid>
       ) : (data?.suggestions ?? []).length === 0 ? (
         <Typography variant="body2" color="text.secondary">
-          No optimization suggestions available.
+          No optimization recommendations at this time.
         </Typography>
       ) : (
         <Grid container spacing={2}>
           {data?.suggestions.map((s, idx) => (
             <Grid key={idx} size={{ xs: 12, md: 6 }}>
-              <SuggestionCard suggestion={s} onApply={handleApply} />
+              <SuggestionCard suggestion={s} />
             </Grid>
           ))}
         </Grid>
       )}
 
-      <Snackbar
-        open={!!toast}
-        autoHideDuration={3000}
-        onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert severity="success" onClose={() => setToast(null)}>
-          {toast}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }
