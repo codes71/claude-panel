@@ -12,16 +12,52 @@ def _plugins_dir() -> Path:
     return settings.claude_home / "plugins"
 
 
-def _read_installed() -> list[dict]:
-    """Read installed_plugins.json."""
+def _read_installed() -> dict[str, list[dict]]:
+    """Read installed_plugins.json. Returns dict of plugin_id -> list of install entries."""
     path = _plugins_dir() / "installed_plugins.json"
     if not path.exists():
-        return []
+        return {}
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        return data if isinstance(data, list) else []
+        # v2 format: {"version": 2, "plugins": {"name@marketplace": [...]}}
+        if isinstance(data, dict) and data.get("version") == 2:
+            return data.get("plugins", {})
+        # v1 format: flat list with "id" keys — convert to v2 shape
+        if isinstance(data, list):
+            result: dict[str, list[dict]] = {}
+            for entry in data:
+                pid = entry.get("id", "")
+                if pid:
+                    result.setdefault(pid, []).append(entry)
+            return result
+        return {}
     except (json.JSONDecodeError, PermissionError):
-        return []
+        return {}
+
+
+def _scan_plugin_dir(plugin_dir: Path, result: dict) -> None:
+    """Scan a single plugin directory for skills/agents/commands."""
+    result["size_bytes"] += sum(f.stat().st_size for f in plugin_dir.rglob("*") if f.is_file())
+
+    for f in plugin_dir.rglob("*.md"):
+        if f.parent.name == "skills" or f.name == "SKILL.md":
+            name = f.parent.name if f.name == "SKILL.md" else f.stem
+            if name not in result["skills"]:
+                result["skills"].append(name)
+        elif f.parent.name == "agents":
+            if f.stem not in result["agents"]:
+                result["agents"].append(f.stem)
+        elif f.parent.name == "commands":
+            if f.stem not in result["commands"]:
+                result["commands"].append(f.stem)
+
+    for f in plugin_dir.rglob("*.yaml"):
+        if "skill" in str(f):
+            if f.stem not in result["skills"]:
+                result["skills"].append(f.stem)
+        elif "agent" in str(f):
+            if f.stem not in result["agents"]:
+                result["agents"].append(f.stem)
 
 
 def _scan_plugin_cache(plugin_id: str) -> dict:
@@ -32,30 +68,30 @@ def _scan_plugin_cache(plugin_id: str) -> dict:
     if not cache_dir.exists():
         return result
 
-    name_part = plugin_id.split("@")[0]
+    parts = plugin_id.split("@")
+    name_part = parts[0]
+    marketplace_part = parts[1] if len(parts) > 1 else ""
 
-    for d in cache_dir.iterdir():
-        if d.is_dir() and name_part in d.name:
-            result["size_bytes"] = sum(f.stat().st_size for f in d.rglob("*") if f.is_file())
+    # Structure: cache/<marketplace>/<plugin_name>/<version>/
+    if marketplace_part:
+        plugin_dir = cache_dir / marketplace_part / name_part
+        if plugin_dir.is_dir():
+            for version_dir in plugin_dir.iterdir():
+                if version_dir.is_dir():
+                    _scan_plugin_dir(version_dir, result)
+                    break
+            return result
 
-            # Look for skill/agent definitions
-            for f in d.rglob("*.md"):
-                content_lower = f.name.lower()
-                if "skill" in content_lower or f.parent.name == "skills":
-                    result["skills"].append(f.stem)
-                elif "agent" in content_lower or f.parent.name == "agents":
-                    result["agents"].append(f.stem)
-                elif "command" in content_lower or f.parent.name == "commands":
-                    result["commands"].append(f.stem)
-
-            # Also check for YAML/JSON definitions
-            for f in d.rglob("*.yaml"):
-                if "skill" in str(f):
-                    result["skills"].append(f.stem)
-                elif "agent" in str(f):
-                    result["agents"].append(f.stem)
-
-            break
+    # Fallback: search all marketplace dirs
+    for mp_dir in cache_dir.iterdir():
+        if mp_dir.is_dir():
+            candidate = mp_dir / name_part
+            if candidate.is_dir():
+                for version_dir in candidate.iterdir():
+                    if version_dir.is_dir():
+                        _scan_plugin_dir(version_dir, result)
+                        break
+                break
 
     return result
 
@@ -68,14 +104,17 @@ def list_plugins() -> list[dict]:
 
     seen_ids = set()
 
-    for entry in installed:
-        pid = entry.get("id", "")
+    for pid, entries in installed.items():
         if not pid:
             continue
         seen_ids.add(pid)
 
         name_part = pid.split("@")[0]
-        marketplace = pid.split("@")[1] if "@" in pid else entry.get("marketplace", "unknown")
+        marketplace = pid.split("@")[1] if "@" in pid else "unknown"
+
+        # Use the first install entry for version/scope info
+        first_entry = entries[0] if entries else {}
+        version = first_entry.get("version", "unknown")
 
         cache_info = _scan_plugin_cache(pid)
 
@@ -88,9 +127,9 @@ def list_plugins() -> list[dict]:
 
         plugins.append({
             "plugin_id": pid,
-            "name": entry.get("name", name_part),
+            "name": name_part,
             "marketplace": marketplace,
-            "version": entry.get("version", "unknown"),
+            "version": version,
             "enabled": is_enabled,
             "skills": cache_info["skills"],
             "agents": cache_info["agents"],
@@ -104,17 +143,24 @@ def list_plugins() -> list[dict]:
         if pid not in seen_ids:
             name_part = pid.split("@")[0]
             marketplace = pid.split("@")[1] if "@" in pid else "unknown"
+            cache_info = _scan_plugin_cache(pid)
+            estimated_tokens = 0
+            if is_enabled:
+                estimated_tokens = PLUGIN_BASE_TOKENS
+                estimated_tokens += len(cache_info["skills"]) * PLUGIN_SKILL_TOKENS
+                estimated_tokens += len(cache_info["agents"]) * PLUGIN_AGENT_TOKENS
+
             plugins.append({
                 "plugin_id": pid,
                 "name": name_part,
                 "marketplace": marketplace,
                 "version": "unknown",
                 "enabled": is_enabled,
-                "skills": [],
-                "agents": [],
-                "commands": [],
-                "size_bytes": 0,
-                "estimated_tokens": PLUGIN_BASE_TOKENS if is_enabled else 0,
+                "skills": cache_info["skills"],
+                "agents": cache_info["agents"],
+                "commands": cache_info["commands"],
+                "size_bytes": cache_info["size_bytes"],
+                "estimated_tokens": estimated_tokens,
             })
 
     return plugins
