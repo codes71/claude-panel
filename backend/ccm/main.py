@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from ccm.config import settings
-from ccm.routers import health, dashboard, settings as settings_router, plugins, mcp, claude_md, visibility
+from ccm.routers import health, dashboard, settings as settings_router, plugins, mcp, claude_md, visibility, ccr, marketplace, commands, skill_providers
 
 
 def create_app() -> FastAPI:
@@ -35,6 +35,10 @@ def create_app() -> FastAPI:
     app.include_router(mcp.router, prefix="/api")
     app.include_router(claude_md.router, prefix="/api")
     app.include_router(visibility.router, prefix="/api")
+    app.include_router(ccr.router, prefix="/api")
+    app.include_router(marketplace.router, prefix="/api")
+    app.include_router(commands.router, prefix="/api")
+    app.include_router(skill_providers.router, prefix="/api")
 
     # Serve built frontend in production
     static_dir = Path(__file__).parent / "static"
