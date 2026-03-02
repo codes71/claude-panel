@@ -27,7 +27,6 @@ import {
   CircularProgress,
   Tooltip,
   InputAdornment,
-  Checkbox,
   Switch,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
@@ -43,8 +42,6 @@ import TerminalIcon from "@mui/icons-material/Terminal";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ExtensionIcon from "@mui/icons-material/Extension";
-import PowerIcon from "@mui/icons-material/Power";
-import PowerOffIcon from "@mui/icons-material/PowerOff";
 import {
   useSkillProviders,
   useAddSkillProvider,
@@ -73,7 +70,6 @@ export default function SkillCatalogPage() {
   const [installedExpanded, setInstalledExpanded] = useState(true);
   const [installedSearch, setInstalledSearch] = useState("");
   const [expandedPlugins, setExpandedPlugins] = useState<Set<string>>(new Set());
-  const [selectedPlugins, setSelectedPlugins] = useState<Set<string>>(new Set());
 
   // Group installed skills by plugin
   interface PluginGroup {
@@ -122,35 +118,6 @@ export default function SkillCatalogPage() {
     });
   };
 
-  const togglePluginSelected = (name: string) => {
-    setSelectedPlugins((prev) => {
-      const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
-      return next;
-    });
-  };
-
-  const handleBulkDisable = () => {
-    for (const pluginId of selectedPlugins) {
-      const group = pluginGroups.find((g) => g.pluginId === pluginId);
-      if (group?.enabled) {
-        togglePlugin.mutate({ pluginId, enabled: false });
-      }
-    }
-    setSelectedPlugins(new Set());
-    setToast({ msg: `Disabled ${selectedPlugins.size} plugin(s)`, severity: "success" });
-  };
-
-  const handleBulkEnable = () => {
-    for (const pluginId of selectedPlugins) {
-      const group = pluginGroups.find((g) => g.pluginId === pluginId);
-      if (!group?.enabled) {
-        togglePlugin.mutate({ pluginId, enabled: true });
-      }
-    }
-    setSelectedPlugins(new Set());
-    setToast({ msg: `Enabled ${selectedPlugins.size} plugin(s)`, severity: "success" });
-  };
 
   // UI state
   const [search, setSearch] = useState("");
@@ -348,17 +315,6 @@ export default function SkillCatalogPage() {
             <IconButton size="small" onClick={() => setInstalledExpanded(!installedExpanded)}>
               {installedExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </IconButton>
-            <Box sx={{ flex: 1 }} />
-            {selectedPlugins.size > 0 && (
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <Button size="small" startIcon={<PowerIcon />} onClick={handleBulkEnable} color="success" variant="outlined">
-                  Enable ({selectedPlugins.size})
-                </Button>
-                <Button size="small" startIcon={<PowerOffIcon />} onClick={handleBulkDisable} color="error" variant="outlined">
-                  Disable ({selectedPlugins.size})
-                </Button>
-              </Box>
-            )}
           </Box>
           <Collapse in={installedExpanded}>
             <Box sx={{ mb: 1.5 }}>
@@ -379,7 +335,6 @@ export default function SkillCatalogPage() {
             </Box>
             {filteredGroups.map((group) => {
               const isExpanded = expandedPlugins.has(group.name);
-              const isSelected = selectedPlugins.has(group.pluginId);
               return (
                 <Card
                   key={group.pluginId}
@@ -401,13 +356,6 @@ export default function SkillCatalogPage() {
                     }}
                     onClick={() => togglePluginExpanded(group.name)}
                   >
-                    <Checkbox
-                      size="small"
-                      checked={isSelected}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={() => togglePluginSelected(group.pluginId)}
-                      sx={{ p: 0.5, mr: 0.5 }}
-                    />
                     <ExtensionIcon sx={{ fontSize: 18, color: group.enabled ? "success.main" : "text.disabled", mr: 1 }} />
                     <Typography variant="subtitle2" sx={{ flex: 1, fontWeight: 600 }}>
                       {group.name}
