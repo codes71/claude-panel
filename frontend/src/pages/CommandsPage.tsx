@@ -24,6 +24,7 @@ import {
 import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import FolderIcon from "@mui/icons-material/Folder";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
@@ -37,6 +38,7 @@ import {
   useUpdateCommand,
   useCreateCommand,
   useDeleteCommand,
+  useRenameCommand,
 } from "../api/commands";
 import CodeEditor from "../components/CodeEditor";
 import TokenBadge from "../components/TokenBadge";
@@ -75,6 +77,7 @@ export default function CommandsPage() {
   const updateCmd = useUpdateCommand();
   const createCmd = useCreateCommand();
   const deleteCmd = useDeleteCommand();
+  const renameCmd = useRenameCommand();
 
   const [selectedCommand, setSelectedCommand] = useState<{
     namespace: string;
@@ -91,6 +94,10 @@ export default function CommandsPage() {
   const [newContent, setNewContent] = useState("");
   const [nameError, setNameError] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameNamespace, setRenameNamespace] = useState("");
+  const [renameName, setRenameName] = useState("");
+  const [renameError, setRenameError] = useState("");
   const [toast, setToast] = useState<{
     msg: string;
     severity: "success" | "error";
@@ -231,6 +238,48 @@ export default function CommandsPage() {
           setNewDescription("");
           setNewContent("");
           setNameError("");
+        },
+        onError: (e) =>
+          setToast({ msg: (e as Error).message, severity: "error" }),
+      }
+    );
+  };
+
+  const handleOpenRename = () => {
+    if (!selectedCommand) return;
+    setRenameNamespace(selectedCommand.namespace);
+    setRenameName(selectedCommand.name);
+    setRenameError("");
+    setRenameOpen(true);
+  };
+
+  const handleRename = () => {
+    const trimmedName = renameName.trim();
+    const trimmedNs = renameNamespace.trim();
+    if (!trimmedName) return;
+    if (!VALID_NAME_RE.test(trimmedName)) {
+      setRenameError("Only letters, numbers, hyphens, and underscores allowed");
+      return;
+    }
+    if (trimmedNs && !VALID_NAME_RE.test(trimmedNs)) {
+      setRenameError("Namespace: only letters, numbers, hyphens, and underscores allowed");
+      return;
+    }
+    if (!selectedCommand) return;
+    setRenameError("");
+
+    renameCmd.mutate(
+      {
+        namespace: selectedCommand.namespace,
+        name: selectedCommand.name,
+        new_namespace: trimmedNs,
+        new_name: trimmedName,
+      },
+      {
+        onSuccess: () => {
+          setToast({ msg: "Command renamed", severity: "success" });
+          setSelectedCommand({ namespace: trimmedNs, name: trimmedName });
+          setRenameOpen(false);
         },
         onError: (e) =>
           setToast({ msg: (e as Error).message, severity: "error" }),
@@ -577,6 +626,14 @@ export default function CommandsPage() {
                   >
                     /{selectedQualifiedName}
                   </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={handleOpenRename}
+                    title="Rename command"
+                    sx={{ color: "text.secondary" }}
+                  >
+                    <EditIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
                   {selectedInfo.category && (
                     <Chip
                       label={selectedInfo.category}
@@ -725,6 +782,55 @@ export default function CommandsPage() {
             disabled={deleteCmd.isPending}
           >
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Rename Command Dialog */}
+      <Dialog
+        open={renameOpen}
+        onClose={() => setRenameOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Rename Command</DialogTitle>
+        <DialogContent sx={{ pt: "16px !important" }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <TextField
+              label="Namespace"
+              value={renameNamespace}
+              onChange={(e) => setRenameNamespace(e.target.value)}
+              fullWidth
+              size="small"
+              placeholder="Leave empty for root"
+              helperText='The part before the colon (e.g. "sc" in sc:load)'
+            />
+            <TextField
+              label="Name"
+              value={renameName}
+              onChange={(e) => {
+                setRenameName(e.target.value);
+                if (renameError) setRenameError("");
+              }}
+              fullWidth
+              size="small"
+              required
+              placeholder="my-command"
+              helperText={renameError || "Letters, numbers, hyphens, underscores only"}
+              error={!!renameError}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setRenameOpen(false)} color="inherit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleRename}
+            variant="contained"
+            disabled={!renameName.trim() || renameCmd.isPending}
+          >
+            Rename
           </Button>
         </DialogActions>
       </Dialog>

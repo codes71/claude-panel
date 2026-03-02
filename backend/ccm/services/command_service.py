@@ -153,8 +153,8 @@ def list_commands() -> dict:
         ns_map[ns]["command_count"] += 1
         ns_map[ns]["total_tokens"] += cmd["token_estimate"]
 
-    # Only include non-root namespaces in the namespaces list
-    namespaces = [v for k, v in sorted(ns_map.items()) if k != ""]
+    # Sort namespaces: root ("") last so named namespaces appear first
+    namespaces = [v for _, v in sorted(ns_map.items(), key=lambda x: (x[0] == "", x[0]))]
 
     total_tokens = sum(cmd["token_estimate"] for cmd in commands)
 
@@ -256,6 +256,59 @@ def update_command(namespace: str, name: str, content: str) -> dict:
         "namespace": namespace,
         "qualified_name": qualified_name,
         "file_path": str(file_path),
+        "size_bytes": stat.st_size,
+        "token_estimate": estimate_file_tokens(stat.st_size),
+        "description": fm.get("description", ""),
+        "category": fm.get("category", ""),
+        "content": content,
+    }
+
+
+def rename_command(namespace: str, name: str, new_namespace: str, new_name: str) -> dict:
+    """Rename/move a command to a new namespace and/or name.
+
+    Creates the file at the new location and removes the old one.
+    Raises ``FileNotFoundError`` if the source does not exist,
+    ``FileExistsError`` if the destination already exists.
+    """
+    old_path = _resolve_command_path(namespace, name)
+    new_path = _resolve_command_path(new_namespace, new_name)
+
+    if not old_path.exists():
+        raise FileNotFoundError(
+            f"Command not found: {namespace + ':' + name if namespace else name}"
+        )
+
+    if new_path.exists():
+        raise FileExistsError(
+            f"Command already exists: {new_namespace + ':' + new_name if new_namespace else new_name}"
+        )
+
+    content = old_path.read_text(encoding="utf-8")
+
+    # Create target directory if needed
+    new_path.parent.mkdir(parents=True, exist_ok=True)
+    new_path.write_text(content, encoding="utf-8")
+
+    # Remove old file (with backup)
+    backup_file(old_path)
+    old_path.unlink()
+
+    # Clean up empty old namespace directory
+    cmds_dir = _commands_dir().resolve()
+    parent = old_path.parent.resolve()
+    if parent != cmds_dir and parent.is_dir() and not any(parent.iterdir()):
+        parent.rmdir()
+
+    stat = new_path.stat()
+    fm = _parse_frontmatter(content)
+    qualified_name = f"{new_namespace}:{new_name}" if new_namespace else new_name
+
+    return {
+        "name": new_name,
+        "namespace": new_namespace,
+        "qualified_name": qualified_name,
+        "file_path": str(new_path),
         "size_bytes": stat.st_size,
         "token_estimate": estimate_file_tokens(stat.st_size),
         "description": fm.get("description", ""),

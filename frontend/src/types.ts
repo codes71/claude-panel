@@ -322,6 +322,11 @@ export interface CommandUpdateRequest {
   content: string;
 }
 
+export interface CommandRenameRequest {
+  new_namespace: string;
+  new_name: string;
+}
+
 // ---- Skill Providers ----
 
 export interface SkillProviderInfo {

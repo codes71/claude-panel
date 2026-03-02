@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, Path as PathParam
 
-from ccm.models.commands import CommandCreateRequest, CommandUpdateRequest
+from ccm.models.commands import CommandCreateRequest, CommandRenameRequest, CommandUpdateRequest
 from ccm.services import command_service
 
 router = APIRouter(tags=["commands"])
@@ -57,6 +57,24 @@ async def update_command(
         return command_service.update_command(ns, name, body.content)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/commands/{namespace}/{name}/rename")
+async def rename_command(
+    body: CommandRenameRequest,
+    namespace: str = PathParam(..., description="Namespace or '_root_' for root-level commands"),
+    name: str = PathParam(..., description="Command name without .md extension"),
+):
+    """Rename or move a command to a new namespace and/or name."""
+    ns = _normalize_namespace(namespace)
+    try:
+        return command_service.rename_command(ns, name, body.new_namespace, body.new_name)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except FileExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -44,6 +44,13 @@ class CommandUpdateRequest(BaseModel):
     content: str
 
 
+class CommandRenameRequest(BaseModel):
+    """Request to rename/move a command to a new namespace and/or name."""
+
+    new_namespace: str = ""
+    new_name: str
+
+
 class CommandListResponse(BaseModel):
     """Response listing all commands with namespace groupings."""
 

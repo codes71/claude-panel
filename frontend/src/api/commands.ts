@@ -5,6 +5,7 @@ import type {
   CommandDetail,
   CommandCreateRequest,
   CommandUpdateRequest,
+  CommandRenameRequest,
 } from "../types";
 
 export function useCommands() {
@@ -45,6 +46,20 @@ export function useUpdateCommand() {
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ["commands"] });
       qc.invalidateQueries({ queryKey: ["command", vars.namespace, vars.name] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
+export function useRenameCommand() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ namespace, name, ...body }: { namespace: string; name: string } & CommandRenameRequest) => {
+      const ns = namespace === "" ? "_root_" : namespace;
+      return post<CommandDetail>(`/commands/${encodeURIComponent(ns)}/${encodeURIComponent(name)}/rename`, body);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["commands"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
