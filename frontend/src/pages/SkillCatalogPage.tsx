@@ -27,6 +27,8 @@ import {
   CircularProgress,
   Tooltip,
   InputAdornment,
+  Checkbox,
+  Switch,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
@@ -41,6 +43,8 @@ import TerminalIcon from "@mui/icons-material/Terminal";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ExtensionIcon from "@mui/icons-material/Extension";
+import PowerIcon from "@mui/icons-material/Power";
+import PowerOffIcon from "@mui/icons-material/PowerOff";
 import {
   useSkillProviders,
   useAddSkillProvider,
@@ -49,7 +53,7 @@ import {
   useInstallSkill,
   useUninstallSkill,
 } from "../api/skillProviders";
-import { usePlugins } from "../api/plugins";
+import { usePlugins, useTogglePlugin } from "../api/plugins";
 import type { DiscoveredSkill, DiscoveredCommand } from "../types";
 
 type CatalogItem = (DiscoveredSkill | DiscoveredCommand) & { type: "skill" | "command" };
@@ -63,32 +67,90 @@ export default function SkillCatalogPage() {
   const updateProvider = useUpdateSkillProvider();
   const installSkill = useInstallSkill();
   const uninstallSkill = useUninstallSkill();
+  const togglePlugin = useTogglePlugin();
 
-  // Installed skills section expanded
+  // Installed skills section
   const [installedExpanded, setInstalledExpanded] = useState(true);
   const [installedSearch, setInstalledSearch] = useState("");
+  const [expandedPlugins, setExpandedPlugins] = useState<Set<string>>(new Set());
+  const [selectedPlugins, setSelectedPlugins] = useState<Set<string>>(new Set());
 
-  // Derive installed skills from plugins
-  const installedSkills = useMemo(() => {
+  // Group installed skills by plugin
+  interface PluginGroup {
+    pluginId: string;
+    name: string;
+    enabled: boolean;
+    skills: { skill: string; slash: string }[];
+  }
+
+  const pluginGroups = useMemo<PluginGroup[]>(() => {
     if (!pluginData?.plugins) return [];
-    const items: { plugin: string; skill: string; slash: string; enabled: boolean }[] = [];
-    for (const p of pluginData.plugins) {
-      if (p.skills.length === 0) continue;
-      for (const s of p.skills) {
-        const slash = p.skills.length === 1 && s === p.name ? `/${s}` : `/${p.name}:${s}`;
-        items.push({ plugin: p.name, skill: s, slash, enabled: p.enabled });
-      }
-    }
-    return items;
+    return pluginData.plugins
+      .filter((p) => p.skills.length > 0)
+      .map((p) => ({
+        pluginId: p.plugin_id,
+        name: p.name,
+        enabled: p.enabled,
+        skills: p.skills.map((s) => ({
+          skill: s,
+          slash: p.skills.length === 1 && s === p.name ? `/${s}` : `/${p.name}:${s}`,
+        })),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [pluginData]);
 
-  const filteredInstalled = useMemo(() => {
-    if (!installedSearch) return installedSkills;
+  const totalSkillCount = useMemo(() => pluginGroups.reduce((sum, g) => sum + g.skills.length, 0), [pluginGroups]);
+
+  const filteredGroups = useMemo(() => {
+    if (!installedSearch) return pluginGroups;
     const q = installedSearch.toLowerCase();
-    return installedSkills.filter(
-      (i) => i.skill.toLowerCase().includes(q) || i.plugin.toLowerCase().includes(q) || i.slash.toLowerCase().includes(q),
-    );
-  }, [installedSkills, installedSearch]);
+    return pluginGroups
+      .map((g) => ({
+        ...g,
+        skills: g.skills.filter(
+          (s) => s.skill.toLowerCase().includes(q) || s.slash.toLowerCase().includes(q) || g.name.toLowerCase().includes(q),
+        ),
+      }))
+      .filter((g) => g.skills.length > 0);
+  }, [pluginGroups, installedSearch]);
+
+  const togglePluginExpanded = (name: string) => {
+    setExpandedPlugins((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  };
+
+  const togglePluginSelected = (name: string) => {
+    setSelectedPlugins((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  };
+
+  const handleBulkDisable = () => {
+    for (const pluginId of selectedPlugins) {
+      const group = pluginGroups.find((g) => g.pluginId === pluginId);
+      if (group?.enabled) {
+        togglePlugin.mutate({ pluginId, enabled: false });
+      }
+    }
+    setSelectedPlugins(new Set());
+    setToast({ msg: `Disabled ${selectedPlugins.size} plugin(s)`, severity: "success" });
+  };
+
+  const handleBulkEnable = () => {
+    for (const pluginId of selectedPlugins) {
+      const group = pluginGroups.find((g) => g.pluginId === pluginId);
+      if (!group?.enabled) {
+        togglePlugin.mutate({ pluginId, enabled: true });
+      }
+    }
+    setSelectedPlugins(new Set());
+    setToast({ msg: `Enabled ${selectedPlugins.size} plugin(s)`, severity: "success" });
+  };
 
   // UI state
   const [search, setSearch] = useState("");
@@ -278,14 +340,25 @@ export default function SkillCatalogPage() {
       </Box>
 
       {/* ---- Installed Skills Section ---- */}
-      {installedSkills.length > 0 && (
+      {pluginGroups.length > 0 && (
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
             <Typography variant="h6">Installed Skills</Typography>
-            <Chip label={installedSkills.length} size="small" color="success" />
+            <Chip label={totalSkillCount} size="small" color="success" />
             <IconButton size="small" onClick={() => setInstalledExpanded(!installedExpanded)}>
               {installedExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </IconButton>
+            <Box sx={{ flex: 1 }} />
+            {selectedPlugins.size > 0 && (
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button size="small" startIcon={<PowerIcon />} onClick={handleBulkEnable} color="success" variant="outlined">
+                  Enable ({selectedPlugins.size})
+                </Button>
+                <Button size="small" startIcon={<PowerOffIcon />} onClick={handleBulkDisable} color="error" variant="outlined">
+                  Disable ({selectedPlugins.size})
+                </Button>
+              </Box>
+            )}
           </Box>
           <Collapse in={installedExpanded}>
             <Box sx={{ mb: 1.5 }}>
@@ -304,46 +377,95 @@ export default function SkillCatalogPage() {
                 }}
               />
             </Box>
-            <Grid container spacing={1.5}>
-              {filteredInstalled.map((item) => (
-                <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 3 }} key={item.slash}>
-                  <Card
-                    variant="outlined"
+            {filteredGroups.map((group) => {
+              const isExpanded = expandedPlugins.has(group.name);
+              const isSelected = selectedPlugins.has(group.pluginId);
+              return (
+                <Card
+                  key={group.pluginId}
+                  variant="outlined"
+                  sx={{
+                    mb: 1,
+                    opacity: group.enabled ? 1 : 0.5,
+                    borderColor: (t) => group.enabled ? alpha(t.palette.success.main, 0.25) : "divider",
+                  }}
+                >
+                  <Box
                     sx={{
-                      opacity: item.enabled ? 1 : 0.5,
-                      borderColor: (t) => item.enabled ? alpha(t.palette.success.main, 0.3) : "divider",
+                      display: "flex",
+                      alignItems: "center",
+                      px: 1.5,
+                      py: 0.75,
+                      cursor: "pointer",
+                      "&:hover": { bgcolor: "action.hover" },
                     }}
+                    onClick={() => togglePluginExpanded(group.name)}
                   >
-                    <CardContent sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <ExtensionIcon sx={{ fontSize: 16, color: item.enabled ? "success.main" : "text.disabled" }} />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontSize: "0.75rem",
-                            fontWeight: 600,
-                            flex: 1,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {item.slash}
-                        </Typography>
-                        {!item.enabled && (
-                          <Chip label="disabled" size="small" sx={{ height: 18, fontSize: "0.55rem" }} />
-                        )}
-                      </Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ ml: 3 }}>
-                        {item.plugin}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-            {filteredInstalled.length === 0 && installedSearch && (
+                    <Checkbox
+                      size="small"
+                      checked={isSelected}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={() => togglePluginSelected(group.pluginId)}
+                      sx={{ p: 0.5, mr: 0.5 }}
+                    />
+                    <ExtensionIcon sx={{ fontSize: 18, color: group.enabled ? "success.main" : "text.disabled", mr: 1 }} />
+                    <Typography variant="subtitle2" sx={{ flex: 1, fontWeight: 600 }}>
+                      {group.name}
+                    </Typography>
+                    <Chip label={`${group.skills.length} skill${group.skills.length !== 1 ? "s" : ""}`} size="small" variant="outlined" sx={{ mr: 1 }} />
+                    <Tooltip title={group.enabled ? "Disable plugin" : "Enable plugin"}>
+                      <Switch
+                        size="small"
+                        checked={group.enabled}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={() => togglePlugin.mutate({ pluginId: group.pluginId, enabled: !group.enabled })}
+                      />
+                    </Tooltip>
+                    <IconButton size="small">
+                      {isExpanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                    </IconButton>
+                  </Box>
+                  <Collapse in={isExpanded}>
+                    <Box sx={{ px: 2, pb: 1.5 }}>
+                      <Grid container spacing={1}>
+                        {group.skills.map((s) => (
+                          <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={s.slash}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                                py: 0.5,
+                                px: 1,
+                                borderRadius: 1,
+                                bgcolor: (t) => alpha(t.palette.background.default, 0.5),
+                                border: "1px solid",
+                                borderColor: "divider",
+                              }}
+                            >
+                              <TerminalIcon sx={{ fontSize: 14, color: "text.secondary" }} />
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontFamily: "'JetBrains Mono', monospace",
+                                  fontSize: "0.7rem",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {s.slash}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Box>
+                  </Collapse>
+                </Card>
+              );
+            })}
+            {filteredGroups.length === 0 && installedSearch && (
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 No installed skills match "{installedSearch}"
               </Typography>
