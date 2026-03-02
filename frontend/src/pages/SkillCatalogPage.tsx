@@ -28,6 +28,7 @@ import {
   Tooltip,
   InputAdornment,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -39,6 +40,7 @@ import CodeIcon from "@mui/icons-material/Code";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ExtensionIcon from "@mui/icons-material/Extension";
 import {
   useSkillProviders,
   useAddSkillProvider,
@@ -47,6 +49,7 @@ import {
   useInstallSkill,
   useUninstallSkill,
 } from "../api/skillProviders";
+import { usePlugins } from "../api/plugins";
 import type { DiscoveredSkill, DiscoveredCommand } from "../types";
 
 type CatalogItem = (DiscoveredSkill | DiscoveredCommand) & { type: "skill" | "command" };
@@ -54,11 +57,38 @@ type CatalogItem = (DiscoveredSkill | DiscoveredCommand) & { type: "skill" | "co
 export default function SkillCatalogPage() {
   // Query hooks
   const { data, isLoading, error } = useSkillProviders();
+  const { data: pluginData } = usePlugins();
   const addProvider = useAddSkillProvider();
   const removeProvider = useRemoveSkillProvider();
   const updateProvider = useUpdateSkillProvider();
   const installSkill = useInstallSkill();
   const uninstallSkill = useUninstallSkill();
+
+  // Installed skills section expanded
+  const [installedExpanded, setInstalledExpanded] = useState(true);
+  const [installedSearch, setInstalledSearch] = useState("");
+
+  // Derive installed skills from plugins
+  const installedSkills = useMemo(() => {
+    if (!pluginData?.plugins) return [];
+    const items: { plugin: string; skill: string; slash: string; enabled: boolean }[] = [];
+    for (const p of pluginData.plugins) {
+      if (p.skills.length === 0) continue;
+      for (const s of p.skills) {
+        const slash = p.skills.length === 1 && s === p.name ? `/${s}` : `/${p.name}:${s}`;
+        items.push({ plugin: p.name, skill: s, slash, enabled: p.enabled });
+      }
+    }
+    return items;
+  }, [pluginData]);
+
+  const filteredInstalled = useMemo(() => {
+    if (!installedSearch) return installedSkills;
+    const q = installedSearch.toLowerCase();
+    return installedSkills.filter(
+      (i) => i.skill.toLowerCase().includes(q) || i.plugin.toLowerCase().includes(q) || i.slash.toLowerCase().includes(q),
+    );
+  }, [installedSkills, installedSearch]);
 
   // UI state
   const [search, setSearch] = useState("");
@@ -246,6 +276,81 @@ export default function SkillCatalogPage() {
           )}
         </Collapse>
       </Box>
+
+      {/* ---- Installed Skills Section ---- */}
+      {installedSkills.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+            <Typography variant="h6">Installed Skills</Typography>
+            <Chip label={installedSkills.length} size="small" color="success" />
+            <IconButton size="small" onClick={() => setInstalledExpanded(!installedExpanded)}>
+              {installedExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          </Box>
+          <Collapse in={installedExpanded}>
+            <Box sx={{ mb: 1.5 }}>
+              <TextField
+                size="small"
+                placeholder="Search installed skills..."
+                value={installedSearch}
+                onChange={(e) => setInstalledSearch(e.target.value)}
+                sx={{ minWidth: 250 }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Box>
+            <Grid container spacing={1.5}>
+              {filteredInstalled.map((item) => (
+                <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 3 }} key={item.slash}>
+                  <Card
+                    variant="outlined"
+                    sx={{
+                      opacity: item.enabled ? 1 : 0.5,
+                      borderColor: (t) => item.enabled ? alpha(t.palette.success.main, 0.3) : "divider",
+                    }}
+                  >
+                    <CardContent sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <ExtensionIcon sx={{ fontSize: 16, color: item.enabled ? "success.main" : "text.disabled" }} />
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            flex: 1,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {item.slash}
+                        </Typography>
+                        {!item.enabled && (
+                          <Chip label="disabled" size="small" sx={{ height: 18, fontSize: "0.55rem" }} />
+                        )}
+                      </Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ ml: 3 }}>
+                        {item.plugin}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            {filteredInstalled.length === 0 && installedSearch && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                No installed skills match "{installedSearch}"
+              </Typography>
+            )}
+          </Collapse>
+        </Box>
+      )}
 
       {/* ---- Skill Catalog Section ---- */}
       <Typography variant="h6" gutterBottom>Catalog</Typography>
