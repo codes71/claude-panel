@@ -21,7 +21,6 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FolderIcon from "@mui/icons-material/Folder";
@@ -31,7 +30,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import SearchIcon from "@mui/icons-material/Search";
 import { useClaudeMdFiles, useClaudeMdFile, useUpdateClaudeMd, useCreateClaudeMd } from "../api/claudeMd";
-import TokenBadge from "../components/TokenBadge";
+import CodeEditor from "../components/CodeEditor";
 import type { ClaudeMdTreeNode } from "../types";
 
 const SCOPE_COLORS: Record<string, string> = {
@@ -202,7 +201,6 @@ export default function ClaudeMdPage() {
 
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [content, setContent] = useState("");
-  const [preview, setPreview] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newPath, setNewPath] = useState("");
   const [filter, setFilter] = useState("");
@@ -388,91 +386,27 @@ export default function ClaudeMdPage() {
               </Box>
             ) : (
               <>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 2,
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        maxWidth: 300,
-                      }}
-                    >
-                      {selectedFile.path}
-                    </Typography>
-                    <TokenBadge tokens={tokenEstimate} />
-                  </Box>
-                  <Box sx={{ display: "flex", gap: 1 }}>
-                    <Button
-                      size="small"
-                      variant={preview ? "contained" : "outlined"}
-                      onClick={() => setPreview(!preview)}
-                      sx={{ minWidth: 80 }}
-                    >
-                      {preview ? "Edit" : "Preview"}
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      startIcon={<SaveIcon />}
-                      onClick={handleSave}
-                      disabled={updateMd.isPending}
-                    >
-                      Save
-                    </Button>
-                  </Box>
-                </Box>
-
-                {preview ? (
-                  <Box
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                  <Typography
+                    variant="h5"
                     sx={{
-                      flex: 1,
-                      p: 2,
-                      bgcolor: "background.default",
-                      borderRadius: 1,
-                      border: 1,
-                      borderColor: "divider",
-                      overflow: "auto",
-                      whiteSpace: "pre-wrap",
                       fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: "0.8rem",
-                      lineHeight: 1.8,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      maxWidth: 300,
                     }}
                   >
-                    {content || "(empty)"}
-                  </Box>
-                ) : (
-                  <TextField
-                    multiline
-                    fullWidth
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    sx={{
-                      flex: 1,
-                      "& .MuiOutlinedInput-root": {
-                        height: "100%",
-                        alignItems: "flex-start",
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: "0.8rem",
-                        lineHeight: 1.8,
-                        bgcolor: "background.default",
-                      },
-                      "& textarea": {
-                        height: "100% !important",
-                        overflow: "auto !important",
-                      },
-                    }}
-                  />
-                )}
+                    {selectedFile.path}
+                  </Typography>
+                </Box>
+                <CodeEditor
+                  content={content}
+                  onChange={setContent}
+                  onSave={handleSave}
+                  saving={updateMd.isPending}
+                  tokenEstimate={tokenEstimate}
+                />
               </>
             )}
           </CardContent>

@@ -2,6 +2,23 @@
 
 All notable changes to ClaudeBoard are documented in this file.
 
+## [1.5.1] - 2026-03-02
+
+### Improvements
+
+#### Shared CodeEditor Component
+- Extracted reusable `CodeEditor` component from ClaudeMdPage and CommandsPage (~80 lines of duplicated editor JSX)
+- Supports `extraToolbar` slot for page-specific buttons (e.g., delete icon)
+- Added **Ctrl+S / Cmd+S** keyboard shortcut for saving across all editor pages
+
+#### Command Creation Fixes
+- Added name validation: only `[a-zA-Z0-9_-]` allowed (frontend regex + backend `_validate_name()`)
+- Added Description field in Create Command dialog
+- Auto-generates YAML frontmatter (`---\ndescription: "..."\n---`) so Claude Code recognizes skill descriptions
+- Prevents malformed directory creation from names with spaces or slashes
+
+---
+
 ## [1.5.0] - 2026-03-02
 
 ### Rebranding

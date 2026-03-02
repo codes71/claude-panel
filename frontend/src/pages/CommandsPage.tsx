@@ -22,7 +22,6 @@ import {
   IconButton,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import TerminalIcon from "@mui/icons-material/Terminal";
@@ -39,8 +38,11 @@ import {
   useCreateCommand,
   useDeleteCommand,
 } from "../api/commands";
+import CodeEditor from "../components/CodeEditor";
 import TokenBadge from "../components/TokenBadge";
 import type { CommandInfo, CommandNamespace } from "../types";
+
+const VALID_NAME_RE = /^[a-zA-Z0-9_-]+$/;
 
 const STORAGE_KEY = "ccm-cmd-expanded";
 
@@ -79,14 +81,15 @@ export default function CommandsPage() {
     name: string;
   } | null>(null);
   const [content, setContent] = useState("");
-  const [preview, setPreview] = useState(false);
   const [filter, setFilter] = useState("");
   const [expandedNamespaces, setExpandedNamespaces] =
     useState<Set<string>>(loadExpanded);
   const [createOpen, setCreateOpen] = useState(false);
   const [newNamespace, setNewNamespace] = useState("");
   const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const [newContent, setNewContent] = useState("");
+  const [nameError, setNameError] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toast, setToast] = useState<{
     msg: string;
@@ -193,24 +196,41 @@ export default function CommandsPage() {
   };
 
   const handleCreate = () => {
-    if (!newName.trim()) return;
+    const trimmedName = newName.trim();
+    if (!trimmedName) return;
+    if (!VALID_NAME_RE.test(trimmedName)) {
+      setNameError("Only letters, numbers, hyphens, and underscores allowed");
+      return;
+    }
+    setNameError("");
+
+    // Build content with YAML frontmatter
+    const desc = newDescription.trim();
+    const frontmatter = desc
+      ? `---\ndescription: "${desc}"\n---\n\n`
+      : "";
+    const fullContent = frontmatter + newContent;
+
     createCmd.mutate(
       {
         namespace: newNamespace.trim(),
-        name: newName.trim(),
-        content: newContent,
+        name: trimmedName,
+        content: fullContent,
       },
       {
         onSuccess: () => {
           setToast({ msg: "Command created", severity: "success" });
           setSelectedCommand({
             namespace: newNamespace.trim(),
-            name: newName.trim(),
+            name: trimmedName,
           });
+          setContent(fullContent);
           setCreateOpen(false);
           setNewNamespace("");
           setNewName("");
+          setNewDescription("");
           setNewContent("");
+          setNameError("");
         },
         onError: (e) =>
           setToast({ msg: (e as Error).message, severity: "error" }),
@@ -539,73 +559,37 @@ export default function CommandsPage() {
                 <Box
                   sx={{
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
-                    mb: 2,
+                    gap: 1,
+                    flexWrap: "wrap",
+                    mb: 1,
                   }}
                 >
-                  <Box
+                  <Typography
+                    variant="h5"
                     sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      flexWrap: "wrap",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      maxWidth: 300,
                     }}
                   >
-                    <Typography
-                      variant="h5"
+                    /{selectedQualifiedName}
+                  </Typography>
+                  {selectedInfo.category && (
+                    <Chip
+                      label={selectedInfo.category}
+                      size="small"
                       sx={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        maxWidth: 300,
+                        height: 20,
+                        fontSize: "0.6rem",
+                        bgcolor: (t) =>
+                          alpha(t.palette.info.main, 0.12),
+                        color: "info.main",
                       }}
-                    >
-                      /{selectedQualifiedName}
-                    </Typography>
-                    <TokenBadge tokens={tokenEstimate} />
-                    {selectedInfo.category && (
-                      <Chip
-                        label={selectedInfo.category}
-                        size="small"
-                        sx={{
-                          height: 20,
-                          fontSize: "0.6rem",
-                          bgcolor: (t) =>
-                            alpha(t.palette.info.main, 0.12),
-                          color: "info.main",
-                        }}
-                      />
-                    )}
-                  </Box>
-                  <Box sx={{ display: "flex", gap: 1 }}>
-                    <Button
-                      size="small"
-                      variant={preview ? "contained" : "outlined"}
-                      onClick={() => setPreview(!preview)}
-                      sx={{ minWidth: 80 }}
-                    >
-                      {preview ? "Edit" : "Preview"}
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      startIcon={<SaveIcon />}
-                      onClick={handleSave}
-                      disabled={updateCmd.isPending}
-                    >
-                      Save
-                    </Button>
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => setDeleteOpen(true)}
-                      title="Delete command"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
+                    />
+                  )}
                 </Box>
 
                 {selectedInfo.description && (
@@ -618,47 +602,23 @@ export default function CommandsPage() {
                   </Typography>
                 )}
 
-                {preview ? (
-                  <Box
-                    sx={{
-                      flex: 1,
-                      p: 2,
-                      bgcolor: "background.default",
-                      borderRadius: 1,
-                      border: 1,
-                      borderColor: "divider",
-                      overflow: "auto",
-                      whiteSpace: "pre-wrap",
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: "0.8rem",
-                      lineHeight: 1.8,
-                    }}
-                  >
-                    {content || "(empty)"}
-                  </Box>
-                ) : (
-                  <TextField
-                    multiline
-                    fullWidth
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    sx={{
-                      flex: 1,
-                      "& .MuiOutlinedInput-root": {
-                        height: "100%",
-                        alignItems: "flex-start",
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: "0.8rem",
-                        lineHeight: 1.8,
-                        bgcolor: "background.default",
-                      },
-                      "& textarea": {
-                        height: "100% !important",
-                        overflow: "auto !important",
-                      },
-                    }}
-                  />
-                )}
+                <CodeEditor
+                  content={content}
+                  onChange={setContent}
+                  onSave={handleSave}
+                  saving={updateCmd.isPending}
+                  tokenEstimate={tokenEstimate}
+                  extraToolbar={
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => setDeleteOpen(true)}
+                      title="Delete command"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  }
+                />
               </>
             )}
           </CardContent>
@@ -687,12 +647,25 @@ export default function CommandsPage() {
             <TextField
               label="Name"
               value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              onChange={(e) => {
+                setNewName(e.target.value);
+                if (nameError) setNameError("");
+              }}
               fullWidth
               size="small"
               required
               placeholder="my-command"
-              helperText="No .md extension needed"
+              helperText={nameError || "Letters, numbers, hyphens, underscores only"}
+              error={!!nameError}
+            />
+            <TextField
+              label="Description"
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              fullWidth
+              size="small"
+              placeholder="What this command does"
+              helperText="Shows in Claude Code's skill list"
             />
             <TextField
               label="Content"

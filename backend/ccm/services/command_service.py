@@ -1,8 +1,11 @@
 """Custom slash command management — list, read, create, update, delete."""
 
+import re
 from pathlib import Path
 
 import yaml
+
+VALID_NAME_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 
 from ccm.config import settings
 from ccm.services.backup import backup_file, safe_write_text
@@ -47,12 +50,23 @@ def _parse_frontmatter(text: str) -> dict:
     return {}
 
 
+def _validate_name(name: str) -> None:
+    """Validate a command or namespace name segment."""
+    if not VALID_NAME_RE.match(name):
+        raise ValueError(
+            f"Invalid name '{name}': only letters, numbers, hyphens, and underscores are allowed"
+        )
+
+
 def _resolve_command_path(namespace: str, name: str) -> Path:
     """Resolve and validate command file path.
 
-    Raises ``ValueError`` if the resolved path escapes the commands
-    directory (path traversal attempt).
+    Raises ``ValueError`` if the name contains invalid characters or
+    the resolved path escapes the commands directory (path traversal).
     """
+    _validate_name(name)
+    if namespace:
+        _validate_name(namespace)
     cmds = _commands_dir()
 
     if namespace:
