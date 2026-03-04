@@ -2,12 +2,13 @@
 
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from ccm.config import settings
-from ccm.routers import health, dashboard, settings as settings_router, plugins, mcp, claude_md, visibility, ccr, marketplace, commands, skill_providers
+from ccm.routers import health, dashboard, settings as settings_router, plugins, mcp, claude_md, visibility, ccr, marketplace, commands, skill_providers, instances
 
 
 def create_app() -> FastAPI:
@@ -39,11 +40,30 @@ def create_app() -> FastAPI:
     app.include_router(marketplace.router, prefix="/api")
     app.include_router(commands.router, prefix="/api")
     app.include_router(skill_providers.router, prefix="/api")
+    app.include_router(instances.router, prefix="/api")
 
-    # Serve built frontend in production
+    @app.on_event("startup")
+    async def _restore_active_instance():
+        from ccm.services.instance_service import load_persisted_instance, switch_instance
+        active = load_persisted_instance()
+        if active:
+            try:
+                switch_instance(active)
+            except Exception:
+                pass  # Fall back to default ~/.claude
+
     static_dir = Path(__file__).parent / "static"
     if static_dir.exists():
-        app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+        index_html = static_dir / "index.html"
+
+        app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
+
+        @app.get("/{full_path:path}")
+        async def _spa_fallback(request: Request, full_path: str):
+            file_path = static_dir / full_path
+            if full_path and file_path.is_file():
+                return FileResponse(file_path)
+            return FileResponse(index_html)
 
     return app
 

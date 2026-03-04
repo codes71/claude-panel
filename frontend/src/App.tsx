@@ -21,6 +21,7 @@ import HubIcon from "@mui/icons-material/Hub";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 
+import InstanceSwitcher from "./components/InstanceSwitcher";
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
 import PluginsPage from "./pages/PluginsPage";
@@ -32,6 +33,7 @@ import MarketplacePage from "./pages/MarketplacePage";
 import SkillProvidersPage from "./pages/SkillProvidersPage";
 import CommandsPage from "./pages/CommandsPage";
 import SkillCatalogPage from "./pages/SkillCatalogPage";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const DRAWER_WIDTH = 240;
 
@@ -40,13 +42,13 @@ const NAV_ITEMS = [
   { label: "Settings", path: "/settings", icon: <SettingsIcon /> },
   { label: "Plugins", path: "/plugins", icon: <ExtensionIcon /> },
   { label: "Marketplace", path: "/marketplace", icon: <StorefrontIcon /> },
+  { label: "Skill Catalog", path: "/skill-catalog", icon: <AutoFixHighIcon /> },
   { label: "Skill Providers", path: "/providers", icon: <HubIcon /> },
   { label: "MCP Servers", path: "/mcp", icon: <DnsIcon /> },
   { label: "CLAUDE.md", path: "/claude-md", icon: <DescriptionIcon /> },
   { label: "Visibility", path: "/visibility", icon: <VisibilityIcon /> },
   { label: "Code Router", path: "/ccr", icon: <AltRouteIcon /> },
   { label: "Commands", path: "/commands", icon: <TerminalIcon /> },
-  { label: "Skill Catalog", path: "/skill-catalog", icon: <AutoFixHighIcon /> },
 ];
 
 export default function App() {
@@ -89,6 +91,8 @@ export default function App() {
               </Box>
             </Box>
           </Box>
+
+          <InstanceSwitcher />
 
           <List sx={{ px: 1, pt: 1 }}>
             {NAV_ITEMS.map((item) => (
@@ -158,20 +162,22 @@ export default function App() {
           maxWidth: `calc(100vw - ${DRAWER_WIDTH}px)`,
         }}
       >
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/plugins" element={<PluginsPage />} />
-          <Route path="/mcp" element={<McpServersPage />} />
-          <Route path="/claude-md" element={<ClaudeMdPage />} />
-          <Route path="/visibility" element={<VisibilityPage />} />
-          <Route path="/ccr" element={<CcrPage />} />
-          <Route path="/marketplace" element={<MarketplacePage />} />
-          <Route path="/providers" element={<SkillProvidersPage />} />
-          <Route path="/commands" element={<CommandsPage />} />
-          <Route path="/skill-catalog" element={<SkillCatalogPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/plugins" element={<PluginsPage />} />
+            <Route path="/mcp" element={<McpServersPage />} />
+            <Route path="/claude-md" element={<ClaudeMdPage />} />
+            <Route path="/visibility" element={<VisibilityPage />} />
+            <Route path="/ccr" element={<CcrPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/providers" element={<SkillProvidersPage />} />
+            <Route path="/commands" element={<CommandsPage />} />
+            <Route path="/skill-catalog" element={<SkillCatalogPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ErrorBoundary>
       </Box>
     </Box>
   );

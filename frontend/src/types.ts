@@ -398,3 +398,55 @@ export interface SkillInstallActionResponse {
   message: string;
   installed_path: string;
 }
+
+// ---- Skill Catalog (paginated) ----
+
+export interface CatalogItem {
+  id: string;
+  provider_slug: string;
+  name: string;
+  path_in_repo: string;
+  description: string;
+  category: string;
+  token_estimate: number;
+  item_type: "skill" | "command";
+  installed: boolean;
+  installed_scope: string;
+  installed_path: string;
+}
+
+export interface CatalogPageResponse {
+  items: CatalogItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+// ---- Instances ----
+export interface InstanceInfo {
+  id: string;
+  path: string;
+  claude_json_path: string;
+  label: string;
+  has_credentials: boolean;
+  has_settings: boolean;
+  has_plugins: boolean;
+  has_commands: boolean;
+  settings_count: number;
+  mcp_server_count: number;
+  is_active: boolean;
+}
+
+export interface InstanceListResponse {
+  instances: InstanceInfo[];
+  active: InstanceInfo | null;
+}
+
+export interface InstanceSwitchRequest {
+  path: string;
+}
+
+export interface InstanceAddRequest {
+  path: string;
+}
