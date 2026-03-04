@@ -1,6 +1,6 @@
 """Estimates token costs for Claude Code configuration components."""
 
-from ccm.services.scanner import ConfigTree, PluginInfo, McpServerInfo, ClaudeMdInfo
+from ccm.models.scanner import ConfigTree, PluginInfo, McpServerInfo, ClaudeMdInfo
 
 # Known approximate token costs for MCP server tool definitions
 MCP_SERVER_BASE_TOKENS = 200  # Base cost per server registration

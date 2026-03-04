@@ -21,7 +21,7 @@ import {
   useAddProvider,
   useRemoveProvider,
   useUpdateProvider,
-} from "../api/providers";
+} from "../api/marketplace";
 import ProviderCard from "../components/ProviderCard";
 import LoadingCard from "../components/LoadingCard";
 import ConfirmDialog from "../components/ConfirmDialog";

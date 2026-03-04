@@ -26,11 +26,12 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { useMarketplace, useInstallPlugin, useUninstallPlugin } from "../api/marketplace";
+import { useMarketplace, useInstallPlugin, useUninstallPlugin, useAddProvider } from "../api/marketplace";
 import type { MarketplacePlugin } from "../types";
 import LoadingCard from "../components/LoadingCard";
 
@@ -38,6 +39,7 @@ export default function MarketplacePage() {
   const { data, isLoading, error } = useMarketplace();
   const installPlugin = useInstallPlugin();
   const uninstallPlugin = useUninstallPlugin();
+  const addProvider = useAddProvider();
 
   const [search, setSearch] = useState("");
   const [marketplaceFilter, setMarketplaceFilter] = useState("");
@@ -45,6 +47,8 @@ export default function MarketplacePage() {
   const [installTarget, setInstallTarget] = useState<MarketplacePlugin | null>(null);
   const [installScope, setInstallScope] = useState("user");
   const [uninstallTarget, setUninstallTarget] = useState<MarketplacePlugin | null>(null);
+  const [addSourceOpen, setAddSourceOpen] = useState(false);
+  const [addSource, setAddSource] = useState("");
   const [toast, setToast] = useState<{ msg: string; severity: "success" | "error" } | null>(null);
 
   const plugins = data?.plugins ?? [];
@@ -58,7 +62,7 @@ export default function MarketplacePage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return plugins.filter((p) => {
-      if (q && !p.name.toLowerCase().includes(q) && !p.description.toLowerCase().includes(q)) {
+      if (q && !p.name.toLowerCase().includes(q) && !(p.description ?? "").toLowerCase().includes(q)) {
         return false;
       }
       if (marketplaceFilter && p.marketplace_id !== marketplaceFilter) {
@@ -123,6 +127,20 @@ export default function MarketplacePage() {
     });
   };
 
+  const handleAddSourceConfirm = () => {
+    if (!addSource.trim()) return;
+    addProvider.mutate(addSource.trim(), {
+      onSuccess: (res) => {
+        setToast({ msg: res.message || "Source added", severity: "success" });
+        setAddSourceOpen(false);
+        setAddSource("");
+      },
+      onError: (e) => {
+        setToast({ msg: (e as Error).message, severity: "error" });
+      },
+    });
+  };
+
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
@@ -133,7 +151,7 @@ export default function MarketplacePage() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 0.5 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 0.5, flexWrap: "wrap" }}>
         <Typography variant="h1">Marketplace</Typography>
         {data && (
           <Box sx={{ display: "flex", gap: 1 }}>
@@ -146,6 +164,16 @@ export default function MarketplacePage() {
             />
           </Box>
         )}
+        <Box sx={{ ml: "auto" }}>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={() => { setAddSource(""); setAddSourceOpen(true); }}
+          >
+            Add Source
+          </Button>
+        </Box>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Browse and install Claude Code plugins
@@ -283,25 +311,25 @@ export default function MarketplacePage() {
                     {p.description}
                   </Typography>
 
-                  {p.installed && (p.skills.length > 0 || p.agents.length > 0 || p.commands.length > 0) && (
+                  {p.installed && ((p.skills ?? []).length > 0 || (p.agents ?? []).length > 0 || (p.commands ?? []).length > 0) && (
                     <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1.5 }}>
-                      {p.skills.length > 0 && (
+                      {(p.skills ?? []).length > 0 && (
                         <Chip
-                          label={`${p.skills.length} skill${p.skills.length !== 1 ? "s" : ""}`}
+                          label={`${(p.skills ?? []).length} skill${(p.skills ?? []).length !== 1 ? "s" : ""}`}
                           size="small"
                           variant="outlined"
                         />
                       )}
-                      {p.agents.length > 0 && (
+                      {(p.agents ?? []).length > 0 && (
                         <Chip
-                          label={`${p.agents.length} agent${p.agents.length !== 1 ? "s" : ""}`}
+                          label={`${(p.agents ?? []).length} agent${(p.agents ?? []).length !== 1 ? "s" : ""}`}
                           size="small"
                           variant="outlined"
                         />
                       )}
-                      {p.commands.length > 0 && (
+                      {(p.commands ?? []).length > 0 && (
                         <Chip
-                          label={`${p.commands.length} command${p.commands.length !== 1 ? "s" : ""}`}
+                          label={`${(p.commands ?? []).length} command${(p.commands ?? []).length !== 1 ? "s" : ""}`}
                           size="small"
                           variant="outlined"
                         />
@@ -413,6 +441,34 @@ export default function MarketplacePage() {
             startIcon={uninstallPlugin.isPending ? <CircularProgress size={16} /> : undefined}
           >
             Uninstall
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={addSourceOpen} onClose={() => setAddSourceOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Add Marketplace Source</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            label="GitHub Repository"
+            placeholder="owner/repo"
+            helperText="Enter a GitHub repository that provides plugins (e.g., anthropics/claude-plugins)"
+            value={addSource}
+            onChange={(e) => setAddSource(e.target.value)}
+            sx={{ mt: 1 }}
+            onKeyDown={(e) => { if (e.key === "Enter") handleAddSourceConfirm(); }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setAddSourceOpen(false)} color="inherit">Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleAddSourceConfirm}
+            disabled={!addSource.trim() || addProvider.isPending}
+            startIcon={addProvider.isPending ? <CircularProgress size={16} /> : undefined}
+          >
+            Add
           </Button>
         </DialogActions>
       </Dialog>

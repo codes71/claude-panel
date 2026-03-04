@@ -1,83 +1,20 @@
 """Scans ~/.claude/ directory tree and discovers all configuration components."""
 
 import json
-from dataclasses import dataclass, field
+import logging
 from pathlib import Path
 
 from ccm.config import settings
-
-
-@dataclass
-class PluginInfo:
-    plugin_id: str
-    name: str
-    marketplace: str
-    enabled: bool
-    skills: list[str] = field(default_factory=list)
-    agents: list[str] = field(default_factory=list)
-    commands: list[str] = field(default_factory=list)
-    size_bytes: int = 0
-
-
-@dataclass
-class McpServerInfo:
-    name: str
-    server_type: str  # stdio, sse
-    command: str
-    args: list[str] = field(default_factory=list)
-    env: dict[str, str] = field(default_factory=dict)
-    enabled: bool = True
-    scope: str = "global"  # global or project
-
-
-@dataclass
-class ClaudeMdInfo:
-    path: str
-    scope: str  # global, project
-    size_bytes: int = 0
-    last_modified: float = 0.0
-
-
-@dataclass
-class CommandFileInfo:
-    name: str
-    file_path: str
-    size_bytes: int = 0
-
-
-@dataclass
-class HookInfo:
-    event: str
-    command: str
-    file_path: str
-
-
-@dataclass
-class AgentFileInfo:
-    name: str
-    file_path: str
-    size_bytes: int = 0
-
-
-@dataclass
-class MemoryFileInfo:
-    name: str
-    file_path: str
-    size_bytes: int = 0
-    last_modified: float = 0.0
-
-
-@dataclass
-class ConfigTree:
-    plugins: list[PluginInfo] = field(default_factory=list)
-    mcp_servers: list[McpServerInfo] = field(default_factory=list)
-    claude_md_files: list[ClaudeMdInfo] = field(default_factory=list)
-    commands: list[CommandFileInfo] = field(default_factory=list)
-    hooks: list[HookInfo] = field(default_factory=list)
-    agents: list[AgentFileInfo] = field(default_factory=list)
-    memory_files: list[MemoryFileInfo] = field(default_factory=list)
-    settings_json: dict | None = None
-    claude_json: dict | None = None
+from ccm.models.scanner import (
+    AgentFileInfo,
+    ClaudeMdInfo,
+    CommandFileInfo,
+    ConfigTree,
+    HookInfo,
+    McpServerInfo,
+    MemoryFileInfo,
+    PluginInfo,
+)
 
 
 def _read_json(path: Path) -> dict | None:
@@ -114,11 +51,23 @@ def _discover_plugins(claude_home: Path, settings_data: dict | None) -> list[Plu
         # Try to find plugin cache for size/component info
         cache_dir = claude_home / "plugins" / "cache"
         if cache_dir.exists():
-            for d in cache_dir.iterdir():
+            try:
+                cache_entries = list(cache_dir.iterdir())
+            except OSError as e:
+                logger.debug("Cannot read plugin cache dir %s: %s", cache_dir, e)
+                cache_entries = []
+            for d in cache_entries:
                 if d.is_dir() and plugin_id.split("@")[0] in d.name:
-                    info.size_bytes = sum(f.stat().st_size for f in d.rglob("*") if f.is_file())
-                    # Scan for skills, agents, commands
-                    for f in d.rglob("*.md"):
+                    try:
+                        info.size_bytes = sum(f.stat().st_size for f in d.rglob("*") if f.is_file())
+                    except OSError as e:
+                        logger.debug("Error calculating plugin size %s: %s", d, e)
+                    try:
+                        md_files = list(d.rglob("*.md"))
+                    except OSError as e:
+                        logger.debug("Error scanning plugin md files %s: %s", d, e)
+                        md_files = []
+                    for f in md_files:
                         if "skill" in f.name.lower():
                             info.skills.append(f.stem)
                         elif "agent" in f.name.lower():
@@ -171,23 +120,34 @@ def _discover_claude_md_files(claude_home: Path) -> list[ClaudeMdInfo]:
     # Global CLAUDE.md
     global_md = claude_home / "CLAUDE.md"
     if global_md.exists():
-        stat = global_md.stat()
-        files.append(ClaudeMdInfo(
-            path=str(global_md),
-            scope="global",
-            size_bytes=stat.st_size,
-            last_modified=stat.st_mtime,
-        ))
+        try:
+            stat = global_md.stat()
+        except OSError as e:
+            logger.debug("Cannot stat %s: %s", global_md, e)
+        else:
+            files.append(ClaudeMdInfo(
+                path=str(global_md),
+                scope="global",
+                size_bytes=stat.st_size,
+                last_modified=stat.st_mtime,
+            ))
 
     # Per-project CLAUDE.md files (in projects/ subdirectories)
     projects_dir = claude_home / "projects"
     if projects_dir.exists():
-        for project_dir in projects_dir.iterdir():
+        try:
+            project_entries = list(projects_dir.iterdir())
+        except OSError as e:
+            logger.debug("Cannot read projects dir %s: %s", projects_dir, e)
+            project_entries = []
+        for project_dir in project_entries:
             if project_dir.is_dir():
-                # Check for CLAUDE.md in the project's actual directory
-                # The project dir name encodes the path
                 for md_file in project_dir.glob("CLAUDE.md"):
-                    stat = md_file.stat()
+                    try:
+                        stat = md_file.stat()
+                    except OSError as e:
+                        logger.debug("Cannot stat %s: %s", md_file, e)
+                        continue
                     files.append(ClaudeMdInfo(
                         path=str(md_file),
                         scope="project",
@@ -198,13 +158,17 @@ def _discover_claude_md_files(claude_home: Path) -> list[ClaudeMdInfo]:
     # Also check CWD and common locations
     cwd_claude = Path.cwd() / "CLAUDE.md"
     if cwd_claude.exists() and str(cwd_claude) not in [f.path for f in files]:
-        stat = cwd_claude.stat()
-        files.append(ClaudeMdInfo(
-            path=str(cwd_claude),
-            scope="project",
-            size_bytes=stat.st_size,
-            last_modified=stat.st_mtime,
-        ))
+        try:
+            stat = cwd_claude.stat()
+        except OSError as e:
+            logger.debug("Cannot stat %s: %s", cwd_claude, e)
+        else:
+            files.append(ClaudeMdInfo(
+                path=str(cwd_claude),
+                scope="project",
+                size_bytes=stat.st_size,
+                last_modified=stat.st_mtime,
+            ))
 
     return files
 
@@ -214,11 +178,21 @@ def _discover_commands(claude_home: Path) -> list[CommandFileInfo]:
     commands = []
     commands_dir = claude_home / "commands"
     if commands_dir.exists():
-        for f in commands_dir.rglob("*.md"):
+        try:
+            md_files = list(commands_dir.rglob("*.md"))
+        except OSError as e:
+            logger.debug("Cannot scan commands dir %s: %s", commands_dir, e)
+            md_files = []
+        for f in md_files:
+            try:
+                size = f.stat().st_size
+            except OSError as e:
+                logger.debug("Cannot stat %s: %s", f, e)
+                continue
             commands.append(CommandFileInfo(
                 name=f.stem,
                 file_path=str(f),
-                size_bytes=f.stat().st_size,
+                size_bytes=size,
             ))
     return commands
 
@@ -245,14 +219,23 @@ def _discover_hooks(settings_data: dict | None) -> list[HookInfo]:
 def _discover_agents(claude_home: Path) -> list[AgentFileInfo]:
     """Find custom agent definitions."""
     agents = []
-    # Check .claude/agents/ directory pattern
     for search_dir in [claude_home / "agents", Path.cwd() / ".claude" / "agents"]:
         if search_dir.exists():
-            for f in search_dir.rglob("*.md"):
+            try:
+                md_files = list(search_dir.rglob("*.md"))
+            except OSError as e:
+                logger.debug("Cannot scan agents dir %s: %s", search_dir, e)
+                md_files = []
+            for f in md_files:
+                try:
+                    size = f.stat().st_size
+                except OSError as e:
+                    logger.debug("Cannot stat %s: %s", f, e)
+                    continue
                 agents.append(AgentFileInfo(
                     name=f.stem,
                     file_path=str(f),
-                    size_bytes=f.stat().st_size,
+                    size_bytes=size,
                 ))
     return agents
 
@@ -262,13 +245,27 @@ def _discover_memory_files(claude_home: Path) -> list[MemoryFileInfo]:
     memory_files = []
     projects_dir = claude_home / "projects"
     if projects_dir.exists():
-        for project_dir in projects_dir.iterdir():
+        try:
+            project_entries = list(projects_dir.iterdir())
+        except OSError as e:
+            logger.debug("Cannot read projects dir %s: %s", projects_dir, e)
+            project_entries = []
+        for project_dir in project_entries:
             if project_dir.is_dir():
                 memory_dir = project_dir / "memory"
                 if memory_dir.exists():
-                    for f in memory_dir.rglob("*"):
+                    try:
+                        mem_files = list(memory_dir.rglob("*"))
+                    except OSError as e:
+                        logger.debug("Cannot scan memory dir %s: %s", memory_dir, e)
+                        mem_files = []
+                    for f in mem_files:
                         if f.is_file():
-                            stat = f.stat()
+                            try:
+                                stat = f.stat()
+                            except OSError as e:
+                                logger.debug("Cannot stat %s: %s", f, e)
+                                continue
                             memory_files.append(MemoryFileInfo(
                                 name=f.name,
                                 file_path=str(f),
