@@ -2,15 +2,34 @@
 
 import subprocess
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from ccm.models.skill_providers import (
     SkillProviderAddRequest,
     SkillInstallRequest,
 )
 from ccm.services import skill_provider_service
+from ccm.services import skill_index_service
 
 router = APIRouter(tags=["skill-providers"])
+
+
+@router.get("/skill-providers/catalog")
+async def catalog_skills(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(48, ge=1, le=200),
+    search: str = Query(""),
+    provider: str = Query(""),
+    type: str = Query("all"),
+):
+    """Browse the skill catalog with pagination and search."""
+    return skill_index_service.query_catalog(
+        page=page,
+        page_size=page_size,
+        search=search,
+        provider_slug=provider,
+        item_type=type,
+    )
 
 
 @router.get("/skill-providers")

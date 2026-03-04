@@ -87,3 +87,27 @@ class SkillInstallActionResponse(BaseModel):
     success: bool
     message: str = ""
     installed_path: str = ""
+
+
+class CatalogItem(BaseModel):
+    """A single item in the paginated catalog."""
+    id: str
+    provider_slug: str
+    name: str
+    path_in_repo: str
+    description: str = ""
+    category: str = ""
+    token_estimate: int = 0
+    item_type: str = "skill"  # "skill" | "command"
+    installed: bool = False
+    installed_scope: str = ""
+    installed_path: str = ""
+
+
+class CatalogPageResponse(BaseModel):
+    """Paginated catalog response."""
+    items: list[CatalogItem] = Field(default_factory=list)
+    total: int = 0
+    page: int = 1
+    page_size: int = 48
+    total_pages: int = 1

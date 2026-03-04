@@ -10,6 +10,7 @@ from pathlib import Path
 from ccm.config import settings
 from ccm.services.backup import backup_file, safe_write_json
 from ccm.services.token_estimator import estimate_file_tokens
+from ccm.services import skill_index_service
 
 
 # ---------------------------------------------------------------------------
@@ -333,26 +334,24 @@ def _discover_commands_in_repo(
 # ---------------------------------------------------------------------------
 
 def list_skill_providers() -> dict:
-    """List all registered providers with their discovered skills and commands.
-
-    Returns a SkillProviderListResponse-compatible dict.
-    """
+    """List all registered providers with counts (skills/commands served via catalog endpoint)."""
     registry = _read_registry()
     providers_data = registry.get("providers", {})
-    installations = registry.get("installations", {})
 
     providers: list[dict] = []
-    all_skills: list[dict] = []
-    all_commands: list[dict] = []
+    total_skills = 0
+    total_commands = 0
 
     for slug, info in sorted(providers_data.items()):
         repo_dir = _repos_dir() / slug
+        skill_count = 0
+        command_count = 0
 
-        skills = []
-        commands = []
         if repo_dir.is_dir():
-            skills = _discover_skills_in_repo(repo_dir, slug, installations)
-            commands = _discover_commands_in_repo(repo_dir, slug, installations)
+            index_data = skill_index_service.build_provider_index(slug, repo_dir)
+            items = index_data.get("items", [])
+            skill_count = sum(1 for i in items if i.get("item_type") == "skill")
+            command_count = sum(1 for i in items if i.get("item_type") == "command")
 
         providers.append({
             "slug": slug,
@@ -362,20 +361,19 @@ def list_skill_providers() -> dict:
             "branch": info.get("branch", "main"),
             "added_at": info.get("added_at", ""),
             "last_updated": info.get("last_updated", ""),
-            "skill_count": len(skills),
-            "command_count": len(commands),
+            "skill_count": skill_count,
+            "command_count": command_count,
         })
-
-        all_skills.extend(skills)
-        all_commands.extend(commands)
+        total_skills += skill_count
+        total_commands += command_count
 
     return {
         "providers": providers,
-        "skills": all_skills,
-        "commands": all_commands,
+        "skills": [],
+        "commands": [],
         "total_providers": len(providers),
-        "total_skills": len(all_skills),
-        "total_commands": len(all_commands),
+        "total_skills": total_skills,
+        "total_commands": total_commands,
     }
 
 
@@ -417,6 +415,9 @@ def add_skill_provider(source: str, branch: str = "main") -> dict:
     }
     _write_registry(registry)
 
+    # Warm the index cache
+    skill_index_service.build_provider_index(slug, target_dir, force=True)
+
     return {
         "slug": slug,
         "action": "add",
@@ -441,6 +442,9 @@ def remove_skill_provider(slug: str) -> dict:
     repo_dir = _repos_dir() / slug
     if repo_dir.is_dir():
         shutil.rmtree(repo_dir)
+
+    # Invalidate index cache
+    skill_index_service.invalidate_provider_index(slug)
 
     # Remove from providers (keep installations for reference)
     del registry["providers"][slug]
@@ -491,6 +495,8 @@ def update_skill_provider(slug: str | None = None) -> list[dict]:
         try:
             _git_pull(repo_dir)
             registry["providers"][s]["last_updated"] = now
+            # Rebuild index cache after pull
+            skill_index_service.build_provider_index(s, repo_dir, force=True)
             results.append({
                 "slug": s,
                 "action": "update",

@@ -1,10 +1,21 @@
 import json
+import os
 import subprocess
 from pathlib import Path
 
 from ccm.config import settings
 from ccm.services.settings_service import get_enabled_plugins
 from ccm.services.plugin_service import _scan_plugin_cache
+
+
+def _claude_env() -> dict[str, str] | None:
+    """Return env dict with CLAUDE_CONFIG_DIR set for non-default instances."""
+    default = Path.home() / ".claude"
+    if settings.claude_home.resolve() != default.resolve():
+        env = os.environ.copy()
+        env["CLAUDE_CONFIG_DIR"] = str(settings.claude_home)
+        return env
+    return None
 
 
 def _plugins_dir() -> Path:
@@ -164,6 +175,7 @@ def install_plugin(plugin_id: str, scope: str = "user") -> dict:
             capture_output=True,
             text=True,
             timeout=120,
+            env=_claude_env(),
         )
         success = result.returncode == 0
         message = result.stdout.strip() if success else result.stderr.strip()
@@ -196,6 +208,7 @@ def uninstall_plugin(plugin_id: str) -> dict:
             capture_output=True,
             text=True,
             timeout=120,
+            env=_claude_env(),
         )
         success = result.returncode == 0
         message = result.stdout.strip() if success else result.stderr.strip()
@@ -264,6 +277,7 @@ def add_provider(source: str) -> dict:
             capture_output=True,
             text=True,
             timeout=120,
+            env=_claude_env(),
         )
         success = result.returncode == 0
         message = result.stdout.strip() if success else result.stderr.strip()
@@ -296,6 +310,7 @@ def remove_provider(name: str) -> dict:
             capture_output=True,
             text=True,
             timeout=120,
+            env=_claude_env(),
         )
         success = result.returncode == 0
         message = result.stdout.strip() if success else result.stderr.strip()
@@ -333,6 +348,7 @@ def update_provider(name: str | None = None) -> dict:
             capture_output=True,
             text=True,
             timeout=timeout,
+            env=_claude_env(),
         )
         success = result.returncode == 0
         message = result.stdout.strip() if success else result.stderr.strip()

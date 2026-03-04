@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { get, post, del } from "./client";
 import type {
   SkillProviderListResponse,
@@ -6,12 +6,38 @@ import type {
   SkillProviderActionResponse,
   SkillInstallRequest,
   SkillInstallActionResponse,
+  CatalogPageResponse,
 } from "../types";
 
 export function useSkillProviders() {
   return useQuery({
     queryKey: ["skill-providers"],
     queryFn: () => get<SkillProviderListResponse>("/skill-providers"),
+  });
+}
+
+export interface CatalogParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  provider?: string;
+  type?: string;
+}
+
+export function useSkillCatalog(params: CatalogParams = {}) {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.set("page", String(params.page));
+  if (params.pageSize) searchParams.set("page_size", String(params.pageSize));
+  if (params.search) searchParams.set("search", params.search);
+  if (params.provider) searchParams.set("provider", params.provider);
+  if (params.type && params.type !== "all") searchParams.set("type", params.type);
+  const qs = searchParams.toString();
+  const path = `/skill-providers/catalog${qs ? `?${qs}` : ""}`;
+
+  return useQuery({
+    queryKey: ["skill-catalog", params],
+    queryFn: () => get<CatalogPageResponse>(path),
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -61,6 +87,7 @@ export function useInstallSkill() {
       post<SkillInstallActionResponse>("/skill-providers/install", data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["skill-providers"] });
+      qc.invalidateQueries({ queryKey: ["skill-catalog"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["visibility"] });
     },
@@ -74,6 +101,7 @@ export function useUninstallSkill() {
       post<SkillInstallActionResponse>("/skill-providers/uninstall", data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["skill-providers"] });
+      qc.invalidateQueries({ queryKey: ["skill-catalog"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["visibility"] });
     },
