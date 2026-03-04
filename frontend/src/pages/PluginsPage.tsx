@@ -24,7 +24,7 @@ export default function PluginsPage() {
   const filtered = plugins.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.skills.some((s) => s.toLowerCase().includes(search.toLowerCase())),
+      (p.skills ?? []).some((s) => s.toLowerCase().includes(search.toLowerCase())),
   );
 
   const handleToggle = (pluginId: string, enabled: boolean) => {

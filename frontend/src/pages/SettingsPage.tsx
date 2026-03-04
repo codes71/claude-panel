@@ -39,11 +39,11 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (data) {
-      const rows = Object.entries(data.env).map(([key, value]) => ({ key, value }));
+      const rows = Object.entries(data.env ?? {}).map(([key, value]) => ({ key, value }));
       const initial = rows.length > 0 ? rows : [{ key: "", value: "" }];
       setEnvRows(initial);
       setSavedEnvRows(initial);
-      setDangerousMode(data.skipDangerousModePermissionPrompt);
+      setDangerousMode(data.skipDangerousModePermissionPrompt ?? false);
     }
   }, [data]);
 
@@ -67,7 +67,7 @@ export default function SettingsPage() {
     // Find deleted keys
     if (data) {
       const currentKeys = new Set(envUpdates.map((e) => e.key));
-      for (const key of Object.keys(data.env)) {
+      for (const key of Object.keys(data.env ?? {})) {
         if (!currentKeys.has(key)) {
           envUpdates.push({ key, value: null });
         }

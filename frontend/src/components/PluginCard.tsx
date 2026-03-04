@@ -24,8 +24,12 @@ interface PluginCardProps {
 export default function PluginCard({ plugin, onToggle, toggling }: PluginCardProps) {
   const [expanded, setExpanded] = useState(false);
 
+  const skills = plugin.skills ?? [];
+  const agents = plugin.agents ?? [];
+  const commands = plugin.commands ?? [];
+
   const hasDetails =
-    plugin.skills.length > 0 || plugin.agents.length > 0 || plugin.commands.length > 0;
+    skills.length > 0 || agents.length > 0 || commands.length > 0;
 
   return (
     <Card
@@ -54,12 +58,12 @@ export default function PluginCard({ plugin, onToggle, toggling }: PluginCardPro
             </Box>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1.5 }}>
               <Chip
-                label={`${plugin.skills.length} skill${plugin.skills.length !== 1 ? "s" : ""}`}
+                label={`${skills.length} skill${skills.length !== 1 ? "s" : ""}`}
                 size="small"
                 variant="outlined"
               />
               <Chip
-                label={`${plugin.agents.length} agent${plugin.agents.length !== 1 ? "s" : ""}`}
+                label={`${agents.length} agent${agents.length !== 1 ? "s" : ""}`}
                 size="small"
                 variant="outlined"
               />
@@ -101,36 +105,36 @@ export default function PluginCard({ plugin, onToggle, toggling }: PluginCardPro
             </Box>
             <Collapse in={expanded}>
               <Box sx={{ mt: 1.5, pt: 1.5, borderTop: 1, borderColor: "divider" }}>
-                {plugin.skills.length > 0 && (
+                {skills.length > 0 && (
                   <Box sx={{ mb: 1 }}>
                     <Typography variant="caption" sx={{ mb: 0.5, display: "block" }}>
                       Skills
                     </Typography>
-                    {plugin.skills.map((s) => (
+                    {skills.map((s) => (
                       <Typography key={s} variant="body2" sx={{ pl: 1, mb: 0.3 }}>
                         {s}
                       </Typography>
                     ))}
                   </Box>
                 )}
-                {plugin.agents.length > 0 && (
+                {agents.length > 0 && (
                   <Box sx={{ mb: 1 }}>
                     <Typography variant="caption" sx={{ mb: 0.5, display: "block" }}>
                       Agents
                     </Typography>
-                    {plugin.agents.map((a) => (
+                    {agents.map((a) => (
                       <Typography key={a} variant="body2" sx={{ pl: 1, mb: 0.3 }}>
                         {a}
                       </Typography>
                     ))}
                   </Box>
                 )}
-                {plugin.commands.length > 0 && (
+                {commands.length > 0 && (
                   <Box>
                     <Typography variant="caption" sx={{ mb: 0.5, display: "block" }}>
                       Commands
                     </Typography>
-                    {plugin.commands.map((c) => (
+                    {commands.map((c) => (
                       <Typography key={c} variant="body2" sx={{ pl: 1, mb: 0.3 }}>
                         {c}
                       </Typography>

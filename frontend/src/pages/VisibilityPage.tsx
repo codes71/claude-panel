@@ -53,8 +53,8 @@ export default function VisibilityPage() {
     () =>
       (data?.commands ?? []).filter(
         (c) =>
-          c.name.toLowerCase().includes(searchLower) ||
-          c.file_path.toLowerCase().includes(searchLower),
+          (c.name ?? "").toLowerCase().includes(searchLower) ||
+          (c.file_path ?? "").toLowerCase().includes(searchLower),
       ),
     [data?.commands, searchLower],
   );
@@ -63,9 +63,9 @@ export default function VisibilityPage() {
     () =>
       (data?.hooks ?? []).filter(
         (h) =>
-          h.event.toLowerCase().includes(searchLower) ||
-          h.command.toLowerCase().includes(searchLower) ||
-          h.file_path.toLowerCase().includes(searchLower),
+          (h.event ?? "").toLowerCase().includes(searchLower) ||
+          (h.command ?? "").toLowerCase().includes(searchLower) ||
+          (h.file_path ?? "").toLowerCase().includes(searchLower),
       ),
     [data?.hooks, searchLower],
   );
@@ -74,9 +74,9 @@ export default function VisibilityPage() {
     () =>
       (data?.agents ?? []).filter(
         (a) =>
-          a.name.toLowerCase().includes(searchLower) ||
-          a.description.toLowerCase().includes(searchLower) ||
-          a.file_path.toLowerCase().includes(searchLower),
+          (a.name ?? "").toLowerCase().includes(searchLower) ||
+          (a.description ?? "").toLowerCase().includes(searchLower) ||
+          (a.file_path ?? "").toLowerCase().includes(searchLower),
       ),
     [data?.agents, searchLower],
   );
@@ -85,8 +85,8 @@ export default function VisibilityPage() {
     () =>
       (data?.memory_files ?? []).filter(
         (m) =>
-          m.name.toLowerCase().includes(searchLower) ||
-          m.file_path.toLowerCase().includes(searchLower),
+          (m.name ?? "").toLowerCase().includes(searchLower) ||
+          (m.file_path ?? "").toLowerCase().includes(searchLower),
       ),
     [data?.memory_files, searchLower],
   );

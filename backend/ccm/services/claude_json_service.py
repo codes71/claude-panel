@@ -16,7 +16,10 @@ def read_claude_json() -> dict:
     path = _claude_json_path()
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, PermissionError, OSError):
+        return {}
 
 
 def get_mcp_servers() -> dict:

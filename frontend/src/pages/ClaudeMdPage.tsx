@@ -68,8 +68,8 @@ interface TreeNodeItemProps {
 function nodeMatchesFilter(node: ClaudeMdTreeNode, filter: string): boolean {
   const lower = filter.toLowerCase();
   if (node.path && node.path.toLowerCase().includes(lower)) return true;
-  if (node.name.toLowerCase().includes(lower)) return true;
-  return node.children.some((c) => nodeMatchesFilter(c, lower));
+  if ((node.name ?? "").toLowerCase().includes(lower)) return true;
+  return (node.children ?? []).some((c) => nodeMatchesFilter(c, lower));
 }
 
 function TreeNodeItem({ node, selectedPath, onSelect, depth, filter, parentPath, expandedNodes, onToggle }: TreeNodeItemProps) {
@@ -80,7 +80,7 @@ function TreeNodeItem({ node, selectedPath, onSelect, depth, filter, parentPath,
 
   // Auto-expand if filter matches a child
   useEffect(() => {
-    if (filter && !isLeaf && !open && node.children.some((c) => nodeMatchesFilter(c, filter))) {
+    if (filter && !isLeaf && !open && (node.children ?? []).some((c) => nodeMatchesFilter(c, filter))) {
       onToggle(nodeId);
     }
   }, [filter]);
@@ -175,7 +175,7 @@ function TreeNodeItem({ node, selectedPath, onSelect, depth, filter, parentPath,
         />
       </ListItemButton>
       {open &&
-        node.children.map((child, i) => (
+        (node.children ?? []).map((child, i) => (
           <TreeNodeItem
             key={child.path || child.name + i}
             node={child}

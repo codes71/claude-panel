@@ -117,7 +117,7 @@ function RouterRulesSection({ router }: { router: CcrRouterConfig }) {
                 variant="body1"
                 sx={{ fontFamily: "monospace", fontSize: "0.85rem", mt: 0.5 }}
               >
-                {router.long_context_threshold.toLocaleString()} tokens
+                {(router?.long_context_threshold ?? 0).toLocaleString()} tokens
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
                 Switch to long context model above this
@@ -139,7 +139,7 @@ function ProviderCard({ provider }: { provider: CcrProvider }) {
             {provider.name}
           </Typography>
           <Chip
-            label={`${provider.models.length} model${provider.models.length !== 1 ? "s" : ""}`}
+            label={`${(provider.models ?? []).length} model${(provider.models ?? []).length !== 1 ? "s" : ""}`}
             size="small"
             variant="outlined"
           />
@@ -168,18 +168,18 @@ function ProviderCard({ provider }: { provider: CcrProvider }) {
             color={provider.has_api_key ? "success" : "default"}
             variant="outlined"
           />
-          {provider.transformer_names.map((t) => (
+          {(provider.transformer_names ?? []).map((t) => (
             <Chip key={t} label={t} size="small" variant="outlined" />
           ))}
         </Box>
 
-        {provider.models.length > 0 && (
+        {(provider.models ?? []).length > 0 && (
           <Box sx={{ mt: 1.5 }}>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
               Models
             </Typography>
             <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-              {provider.models.map((m) => (
+              {(provider.models ?? []).map((m) => (
                 <Chip
                   key={m}
                   label={m}
