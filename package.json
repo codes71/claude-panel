@@ -1,6 +1,6 @@
 {
   "name": "claudeboard",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Local dashboard and control panel for Claude Code configuration",
   "type": "module",
   "bin": {
