@@ -2,6 +2,79 @@
 
 All notable changes to ClaudeBoard are documented in this file.
 
+## [1.9.1] - 2026-03-04
+
+### Skill Index Service
+- Add persistent skill catalog indexing with git-SHA-based cache invalidation
+- Paginated search/filter queries across all registered providers
+- Catalog endpoint with category, provider, and text search filters
+
+---
+
+## [1.9.0] - 2026-03-04
+
+### Modularity Refactor
+- Extract 8 scanner dataclasses from `services/scanner.py` to `models/scanner.py`
+- Split `CommandsPage` (770→40 lines) into `CommandTree`, `CommandDetail`, `CommandDialogs`
+- Split `SkillCatalogPage` (600→40 lines) into `CatalogGrid`, `InstalledSkills`, `ProviderManager`
+- Merge `providers.ts` hooks into `marketplace.ts` (single API module)
+- Add "Add Source" button to Marketplace page for adding providers directly
+- Add `OSError` guards around scanner filesystem operations
+
+---
+
+## [1.8.0] - 2026-03-04
+
+### Test Infrastructure
+- 110 backend tests (pytest) covering all 11 services and API routes
+- 28 frontend tests (Vitest + React Testing Library) for pages and components
+- Tests cover render, loading, error, and empty states
+
+---
+
+## [1.7.1] - 2026-03-03
+
+### Stability Hardening
+- Add null guards and optional chaining across all frontend pages
+- Wrap backend JSON parsing with try/except for malformed config files
+- Prevent crashes when switching between instances with different configs
+
+---
+
+## [1.7.0] - 2026-03-03
+
+### Multi-Instance Management
+- Switch between multiple Claude Code configuration profiles (~/.claude, ~/.claude-alt, etc.)
+- Automatic discovery with strong-marker validation (filters out plugin data dirs)
+- Instance switcher in sidebar with add/remove dialogs
+- React ErrorBoundary for graceful render error recovery
+- SPA routing fix: catch-all serves index.html for client-side routes
+- Targeted query invalidation on instance switch (13 query keys)
+
+---
+
+## [1.6.1] - 2026-03-03
+
+### Open-Source Branding
+- MIT License
+- README with badges, install/usage docs, troubleshooting
+- CONTRIBUTING.md with dev setup and PR workflow
+- CODE_OF_CONDUCT.md (Contributor Covenant v2.1)
+- GitHub issue templates (bug report, feature request)
+
+---
+
+## [1.6.0] - 2026-03-03
+
+### npm Packaging
+- Installable via `npx claudeboard` or `npm install -g claudeboard`
+- CLI with `--port`, `--no-open`, `--help` options
+- Platform checks (Linux/macOS), dependency validation (uv, Python)
+- Dynamic port selection with health-check polling and browser auto-open
+- Styled ANSI startup banner
+
+---
+
 ## [1.5.1] - 2026-03-02
 
 ### Improvements

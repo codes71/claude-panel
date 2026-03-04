@@ -134,7 +134,7 @@ export default function App() {
                 fontSize: "0.65rem",
               }}
             >
-              v1.0.0
+              v1.9.1
             </Typography>
             <Typography
               variant="caption"
