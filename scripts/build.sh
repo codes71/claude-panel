@@ -4,6 +4,6 @@ set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "Building frontend..."
-(cd "$ROOT/frontend" && npx vite build --outDir "$ROOT/backend/ccm/static")
+(cd "$ROOT" && node scripts/build-frontend.mjs)
 
-echo "Build complete. Run with: cd backend && uv run uvicorn ccm.main:app --host 127.0.0.1 --port 8000"
+echo "Build complete. Run with: claudeboard"

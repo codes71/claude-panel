@@ -1,0 +1,52 @@
+{
+  "name": "claudeboard",
+  "version": "1.6.0",
+  "description": "Local dashboard and control panel for Claude Code configuration",
+  "type": "module",
+  "bin": {
+    "claudeboard": "bin/claudeboard.js"
+  },
+  "scripts": {
+    "start": "node bin/claudeboard.js",
+    "build:frontend": "node scripts/build-frontend.mjs",
+    "prepack": "npm --prefix frontend ci && npm run build:frontend"
+  },
+  "files": [
+    "bin",
+    "backend/ccm",
+    "!**/__pycache__",
+    "!**/*.pyc",
+    "!**/*.pyo",
+    "backend/pyproject.toml",
+    "pyproject.toml",
+    "uv.lock",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "dashboard",
+    "cli",
+    "configuration",
+    "control-panel",
+    "mcp",
+    "ai",
+    "plugin-manager",
+    "skill-manager",
+    "admin"
+  ],
+  "author": "Thura",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codes71/claudeboard.git"
+  },
+  "homepage": "https://github.com/codes71/claudeboard#readme",
+  "bugs": {
+    "url": "https://github.com/codes71/claudeboard/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

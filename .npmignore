@@ -1,0 +1,13 @@
+**/__pycache__/
+*.pyc
+*.pyo
+frontend/
+scripts/
+docs/
+*.patch
+*.b64
+.venv/
+.gitignore
+.full-stack-feature/
+.playwright-mcp/
+dashboard-initial.png
