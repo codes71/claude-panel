@@ -8,7 +8,21 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from ccm.config import settings
-from ccm.routers import health, dashboard, settings as settings_router, plugins, mcp, claude_md, visibility, ccr, marketplace, commands, skill_providers, instances
+from ccm.routers import (
+    health,
+    dashboard,
+    settings as settings_router,
+    plugins,
+    mcp,
+    claude_md,
+    visibility,
+    ccr,
+    marketplace,
+    commands,
+    skill_providers,
+    instances,
+    config_bundle,
+)
 
 
 def create_app() -> FastAPI:
@@ -41,6 +55,7 @@ def create_app() -> FastAPI:
     app.include_router(commands.router, prefix="/api")
     app.include_router(skill_providers.router, prefix="/api")
     app.include_router(instances.router, prefix="/api")
+    app.include_router(config_bundle.router, prefix="/api")
 
     @app.on_event("startup")
     async def _restore_active_instance():

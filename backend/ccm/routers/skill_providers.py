@@ -10,6 +10,7 @@ from ccm.models.skill_providers import (
 )
 from ccm.services import skill_provider_service
 from ccm.services import skill_index_service
+from ccm.services import provider_provenance_service
 
 router = APIRouter(tags=["skill-providers"])
 
@@ -36,6 +37,12 @@ async def catalog_skills(
 async def list_skill_providers():
     """List all registered skill providers with discovered skills and commands."""
     return skill_provider_service.list_skill_providers()
+
+
+@router.get("/skill-providers/provenance")
+async def get_provider_provenance():
+    """Return provider lock metadata (repo/branch/commit)."""
+    return provider_provenance_service.read_lock()
 
 
 @router.post("/skill-providers")

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from ccm.services import claude_md_service
+from ccm.services import claude_md_drift_service, claude_md_service
 
 router = APIRouter(tags=["claude-md"])
 
@@ -14,6 +14,11 @@ class ClaudeMdWriteBody(BaseModel):
 @router.get("/claude-md")
 async def list_claude_md_files():
     return claude_md_service.list_claude_md_files()
+
+
+@router.get("/claude-md/drift")
+async def list_claude_md_drift():
+    return claude_md_drift_service.list_drift_events()
 
 
 @router.get("/claude-md/file")

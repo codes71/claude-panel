@@ -32,6 +32,7 @@ class McpServer(BaseModel):
     estimated_tokens: int = 0
     enabled: bool = True
     scope: McpScope = McpScope.GLOBAL
+    project_path: str | None = None
 
 
 class McpServerToggleRequest(BaseModel):
@@ -58,3 +59,51 @@ class McpServerListResponse(BaseModel):
 
     servers: list[McpServer] = Field(default_factory=list)
     total_tokens: int = 0
+
+
+class McpDiagnosticCheck(BaseModel):
+    """One validation check in an MCP diagnostics report."""
+
+    code: str
+    status: str  # "ok" | "warn" | "fail"
+    message: str
+
+
+class McpDiagnosticReport(BaseModel):
+    """Diagnostics report for a single MCP server."""
+
+    name: str
+    enabled: bool = True
+    server_type: McpServerType = McpServerType.STDIO
+    scope: McpScope = McpScope.GLOBAL
+    project_path: str | None = None
+    status: str  # "ok" | "warn" | "fail"
+    checks: list[McpDiagnosticCheck] = Field(default_factory=list)
+    checked_at: float = 0
+
+
+class McpDiagnosticsResponse(BaseModel):
+    """Diagnostics response across all MCP servers."""
+
+    servers: list[McpDiagnosticReport] = Field(default_factory=list)
+    total: int = 0
+
+
+class McpHealthItem(BaseModel):
+    """Persisted MCP health status for a server."""
+
+    name: str
+    enabled: bool = True
+    scope: McpScope = McpScope.GLOBAL
+    project_path: str | None = None
+    status: str = "unknown"  # "ok" | "warn" | "fail" | "unknown"
+    error_code: str = ""
+    message: str = ""
+    checked_at: float = 0
+
+
+class McpHealthResponse(BaseModel):
+    """MCP health response across all servers."""
+
+    servers: list[McpHealthItem] = Field(default_factory=list)
+    updated_at: float = 0

@@ -144,14 +144,7 @@ export default function CommandsPage() {
           mb: 3,
         }}
       >
-        <Box>
-          <Typography variant="h1" sx={{ mb: 0.5 }}>
-            Commands
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage custom slash commands
-          </Typography>
-        </Box>
+        <Box />
         <Button
           variant="contained"
           startIcon={<AddIcon />}

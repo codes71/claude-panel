@@ -72,7 +72,25 @@ class TestBuildInstanceMetadata:
         (mock_settings.claude_home / "settings.json").unlink()
         meta = instance_service._build_instance_metadata(mock_settings.claude_home)
         assert meta["settings_count"] == 0
-        assert meta["mcp_server_count"] == 0
+        assert meta["mcp_server_count"] == 1
+
+    def test_metadata_counts_mcp_servers_from_claude_json(self, mock_settings):
+        mock_settings.claude_json_path.write_text(json.dumps({
+            "mcpServers": {
+                "global-server": {"command": "node", "args": ["global.js"]},
+            },
+            "projects": {
+                "/tmp/project-a": {
+                    "mcpServers": {
+                        "project-server": {"url": "https://example.com/mcp"},
+                    }
+                }
+            },
+        }))
+
+        meta = instance_service._build_instance_metadata(mock_settings.claude_home)
+
+        assert meta["mcp_server_count"] == 2
 
 
 class TestSwitchInstance:

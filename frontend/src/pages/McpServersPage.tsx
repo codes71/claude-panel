@@ -27,6 +27,8 @@ import LoadingCard from "../components/LoadingCard";
 export default function McpServersPage() {
   const { data, isLoading, error } = useMcpServers();
   const servers = data?.servers ?? [];
+  const globalServers = servers.filter((server) => server.scope === "global");
+  const projectServers = servers.filter((server) => server.scope === "project");
   const toggleServer = useToggleMcpServer();
   const createServer = useCreateMcpServer();
   const deleteServer = useDeleteMcpServer();
@@ -150,7 +152,7 @@ export default function McpServersPage() {
       ) : (
         <Grid container spacing={2}>
           {items.map((s) => (
-            <Grid key={s.name} size={{ xs: 12, md: 6 }}>
+            <Grid key={`${s.scope}:${s.project_path ?? ""}:${s.name}`} size={{ xs: 12, md: 6 }}>
               <McpServerCard
                 server={s}
                 onToggle={handleToggle}
@@ -167,14 +169,7 @@ export default function McpServersPage() {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
-        <Box>
-          <Typography variant="h1" sx={{ mb: 0.5 }}>
-            MCP Servers
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Configure Model Context Protocol servers
-          </Typography>
-        </Box>
+        <Box />
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -184,7 +179,8 @@ export default function McpServersPage() {
         </Button>
       </Box>
 
-      {renderSection("MCP Servers", servers, "~/.claude.json")}
+      {renderSection("Global MCP Servers", globalServers, "~/.claude.json")}
+      {renderSection("Project MCP Servers", projectServers, "projects[*].mcpServers")}
 
       {/* Add Server Dialog */}
       <Dialog open={addOpen} onClose={resetForm} maxWidth="sm" fullWidth>

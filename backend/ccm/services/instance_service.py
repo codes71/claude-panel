@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from ccm.config import settings
+from ccm.services.claude_json_service import list_mcp_server_entries
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +89,8 @@ def _build_instance_metadata(config_dir: Path) -> dict[str, Any]:
     # Read settings.json for counts
     settings_data = _read_json(config_dir / "settings.json")
     settings_count = len(settings_data) if settings_data else 0
-    mcp_server_count = len(settings_data.get("mcpServers", {})) if settings_data else 0
+    claude_json_data = _read_json(claude_json_path)
+    mcp_server_count = len(list_mcp_server_entries(claude_json_data))
 
     return {
         "id": config_dir.name,

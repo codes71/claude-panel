@@ -25,7 +25,7 @@ describe("PluginsPage", () => {
       error: null,
     } as any);
     render(<PluginsPage />, { wrapper });
-    expect(screen.getByText("Plugins")).toBeInTheDocument();
+    expect(screen.getByText("No plugins found.")).toBeInTheDocument();
   });
 
   it("shows no plugins message", () => {
@@ -55,6 +55,6 @@ describe("PluginsPage", () => {
       error: null,
     } as any);
     render(<PluginsPage />, { wrapper });
-    expect(screen.getByText("Plugins")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search plugins, skills...")).toBeInTheDocument();
   });
 });

@@ -10,7 +10,7 @@ from pathlib import Path
 from ccm.config import settings
 from ccm.services.backup import backup_file, safe_write_json
 from ccm.services.token_estimator import estimate_file_tokens
-from ccm.services import skill_index_service
+from ccm.services import provider_provenance_service, skill_index_service
 
 
 # ---------------------------------------------------------------------------
@@ -183,6 +183,18 @@ def _git_pull(repo_dir: Path) -> None:
     )
 
 
+def _git_head_sha(repo_dir: Path) -> str:
+    """Return the HEAD commit SHA for *repo_dir*."""
+    result = subprocess.run(
+        ["git", "-C", str(repo_dir), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=True,
+    )
+    return result.stdout.strip()
+
+
 # ---------------------------------------------------------------------------
 # Discovery helpers
 # ---------------------------------------------------------------------------
@@ -337,6 +349,9 @@ def list_skill_providers() -> dict:
     """List all registered providers with counts (skills/commands served via catalog endpoint)."""
     registry = _read_registry()
     providers_data = registry.get("providers", {})
+    lock_by_slug = {
+        p.get("slug"): p for p in provider_provenance_service.read_lock().get("providers", [])
+    }
 
     providers: list[dict] = []
     total_skills = 0
@@ -359,6 +374,7 @@ def list_skill_providers() -> dict:
             "owner": info.get("owner", ""),
             "repo_url": info.get("repo_url", ""),
             "branch": info.get("branch", "main"),
+            "locked_commit": lock_by_slug.get(slug, {}).get("commit", ""),
             "added_at": info.get("added_at", ""),
             "last_updated": info.get("last_updated", ""),
             "skill_count": skill_count,
@@ -415,6 +431,10 @@ def add_skill_provider(source: str, branch: str = "main") -> dict:
     }
     _write_registry(registry)
 
+    # Record reproducible provenance lock.
+    commit_sha = _git_head_sha(target_dir)
+    provider_provenance_service.record_provider(slug, repo_url, branch, commit_sha)
+
     # Warm the index cache
     skill_index_service.build_provider_index(slug, target_dir, force=True)
 
@@ -449,6 +469,7 @@ def remove_skill_provider(slug: str) -> dict:
     # Remove from providers (keep installations for reference)
     del registry["providers"][slug]
     _write_registry(registry)
+    provider_provenance_service.remove_provider(slug)
 
     return {
         "slug": slug,
@@ -495,6 +516,10 @@ def update_skill_provider(slug: str | None = None) -> list[dict]:
         try:
             _git_pull(repo_dir)
             registry["providers"][s]["last_updated"] = now
+            repo_url = registry["providers"][s].get("repo_url", "")
+            branch = registry["providers"][s].get("branch", "main")
+            commit_sha = _git_head_sha(repo_dir)
+            provider_provenance_service.record_provider(s, repo_url, branch, commit_sha)
             # Rebuild index cache after pull
             skill_index_service.build_provider_index(s, repo_dir, force=True)
             results.append({

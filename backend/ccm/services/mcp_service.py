@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 
 from ccm.config import settings
-from ccm.services.claude_json_service import get_mcp_servers, set_mcp_servers
+from ccm.services.claude_json_service import get_mcp_servers, list_mcp_server_entries, set_mcp_servers
+from ccm.services.mcp_diagnostics_service import diagnose_server as diagnose_server_config
+from ccm.services import mcp_health_service
 
 
 def _sidecar_path() -> Path:
@@ -30,20 +32,13 @@ def _write_sidecar(data: dict) -> None:
 
 def list_all_servers() -> list[dict]:
     """List all MCP servers (active + disabled)."""
-    active = get_mcp_servers()
+    active = list_mcp_server_entries()
     disabled = _read_sidecar()
 
     servers = []
-    for name, config in active.items():
-        server_type = "sse" if "url" in config else "stdio"
+    for server in active:
         servers.append({
-            "name": name,
-            "server_type": server_type,
-            "command": config.get("command", config.get("url", "")),
-            "args": config.get("args", []),
-            "env": config.get("env", {}),
-            "enabled": True,
-            "scope": "global",
+            **server,
             "tool_count": 0,  # Unknown without running the server
             "estimated_tokens": 950,  # Default estimate
         })
@@ -58,6 +53,7 @@ def list_all_servers() -> list[dict]:
             "env": config.get("env", {}),
             "enabled": False,
             "scope": "global",
+            "project_path": None,
             "tool_count": 0,
             "estimated_tokens": 0,
         })
@@ -96,3 +92,46 @@ def toggle_server(name: str, enabled: bool) -> dict:
         set_mcp_servers(active)
         _write_sidecar(disabled)
         return {"name": name, "enabled": False, "status": "disabled"}
+
+
+def diagnose_server(name: str) -> dict:
+    """Return diagnostics for one configured MCP server."""
+    servers = list_all_servers()
+    matching_servers = [s for s in servers if s["name"] == name]
+    server = next((s for s in matching_servers if s.get("scope") == "global"), None)
+    if server is None and matching_servers:
+        server = matching_servers[0]
+    if not server:
+        raise KeyError(f"Server '{name}' not found")
+
+    report = diagnose_server_config(server)
+    return {
+        "name": name,
+        "enabled": server["enabled"],
+        "server_type": server["server_type"],
+        "scope": server["scope"],
+        "project_path": server.get("project_path"),
+        **report,
+    }
+
+
+def diagnose_all_servers() -> dict:
+    """Return diagnostics for all configured MCP servers."""
+    reports = []
+    for server in list_all_servers():
+        report = diagnose_server_config(server)
+        reports.append({
+            "name": server["name"],
+            "enabled": server["enabled"],
+            "server_type": server["server_type"],
+            "scope": server["scope"],
+            "project_path": server.get("project_path"),
+            **report,
+        })
+    return {"servers": reports, "total": len(reports)}
+
+
+def list_health() -> dict:
+    """Return current MCP health snapshot and persist latest diagnostics."""
+    diagnostics = diagnose_all_servers()["servers"]
+    return mcp_health_service.update_health_from_diagnostics(diagnostics)

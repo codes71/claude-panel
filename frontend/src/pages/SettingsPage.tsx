@@ -110,13 +110,6 @@ export default function SettingsPage() {
 
   return (
     <Box>
-      <Typography variant="h1" sx={{ mb: 0.5 }}>
-        Settings
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Manage environment variables and permissions
-      </Typography>
-
       {/* Environment Variables */}
       <Card sx={{ mb: 3 }}>
         <CardContent>

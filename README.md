@@ -25,9 +25,11 @@ Manage configuration, plugins, commands, MCP servers, skill providers, and multi
 - **Settings** -- environment variables, hooks, behavioral toggles
 - **Plugin Manager** -- list, enable/disable, and inspect installed plugins with token estimates
 - **MCP Servers** -- add, remove, and toggle Model Context Protocol servers
+- **Reliability** -- MCP Doctor diagnostics, MCP health snapshots, CLAUDE.md drift feed, provider provenance lock view
 - **CLAUDE.md Editor** -- recursive tree scanner with live editing for global and per-project files
 - **Custom Commands** -- full CRUD for slash commands with namespace grouping
 - **Skill Providers** -- add git-based providers, discover and install skills
+- **Config Bundles** -- export, validate, and dry-run apply configuration-as-code bundles
 - **Skill Catalog** -- unified view of installable skills across all providers
 - **Marketplace** -- browse and install plugins from marketplaces
 - **Claude Code Router** -- view provider status, models, routing rules
@@ -81,6 +83,7 @@ By default, ClaudeBoard tries port `8787`. If that port is busy, it automaticall
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CCM_PORT` | Override the default port | `8787` |
+| `CCM_SCAN_ROOTS` | Comma-separated scan roots for CLAUDE.md discovery | Home directory |
 
 ## Troubleshooting
 

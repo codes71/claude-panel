@@ -19,7 +19,6 @@ export default function SkillCatalogPage() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Skill Catalog</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Browse and install skills and commands from GitHub repositories.
       </Typography>

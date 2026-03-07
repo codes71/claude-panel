@@ -2,6 +2,38 @@
 
 All notable changes to ClaudeBoard are documented in this file.
 
+## [2.1.0] - 2026-03-06
+
+### Reliability Control Plane
+- Add `Reliability` page with MCP diagnostics, MCP health, CLAUDE.md drift, provider provenance, and config bundle workflows
+- Add MCP doctor endpoints: `/api/mcp/diagnostics`, `/api/mcp/{name}/diagnose`
+- Add MCP health endpoint and persisted state snapshot: `/api/mcp/health`
+- Add CLAUDE.md drift endpoint and snapshot comparison: `/api/claude-md/drift`
+- Add CLAUDE.md linting and scan root metadata in list response (`issues`, `scan_roots`)
+- Add provider provenance lock tracking (`repo`, `branch`, `commit`) and `/api/skill-providers/provenance`
+- Add config bundle APIs: `/api/config-bundle/export`, `/api/config-bundle/validate`, `/api/config-bundle/apply`
+
+### Testing
+- Add backend tests for drift, MCP diagnostics/health, provider provenance, and config bundle service/routes
+- Add frontend `ReliabilityPage` test and API hook coverage through page rendering tests
+
+## [2.0.0] - 2026-03-05
+
+### UX Redesign
+- Collapsible sidebar (240px expanded / 64px rail) with 4 consolidated nav items
+- Top header bar with instance switcher and theme toggle
+- Dark/light theme system with localStorage persistence (ThemeContext)
+- New Extensions page with 3 tabs: Installed, Marketplace, Skill Catalog
+- New Configuration page with 3 tabs: Settings, MCP Servers, Commands
+- Dashboard overhaul: real activity stats from stats-cache.json, config inventory cards, collapsible Visibility section
+- Stats service (stats_service.py) reading actual usage data
+- Legacy routes redirect to new consolidated pages
+- Code Router hidden from UI (backend retained)
+- Visibility page folded into Dashboard as collapsible section
+- 11 sidebar items reduced to 4: Dashboard, Extensions, Configuration, CLAUDE.md
+
+---
+
 ## [1.9.1] - 2026-03-04
 
 ### Skill Index Service

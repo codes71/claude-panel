@@ -11,6 +11,7 @@ class SkillProviderInfo(BaseModel):
     owner: str
     repo_url: str
     branch: str = "main"
+    locked_commit: str = ""
     added_at: str = ""
     last_updated: str = ""
     skill_count: int = 0

@@ -47,3 +47,31 @@ class TestCreateClaudeMd:
     def test_create_non_claude_md(self, mock_settings):
         with pytest.raises(ValueError, match="CLAUDE.md"):
             claude_md_service.create_claude_md("/tmp/other.txt", "content")
+
+
+class TestListClaudeMd:
+    def test_list_includes_issues_and_scan_roots(self, mock_settings, monkeypatch, tmp_path):
+        project = tmp_path / "project-a"
+        project.mkdir(parents=True, exist_ok=True)
+        md = project / "CLAUDE.md"
+        md.write_text("", encoding="utf-8")
+
+        monkeypatch.setattr(mock_settings, "scan_roots", [tmp_path])
+        data = claude_md_service.list_claude_md_files()
+
+        assert "issues" in data
+        assert isinstance(data["issues"], list)
+        assert "scan_roots" in data
+        assert str(tmp_path) in data["scan_roots"]
+        assert any(i["code"] == "EMPTY" and i["path"] == str(md.resolve()) for i in data["issues"])
+
+
+class TestClaudeMdDrift:
+    def test_list_drift_events_shape(self, mock_settings):
+        from ccm.services import claude_md_drift_service
+
+        data = claude_md_drift_service.list_drift_events()
+        assert "events" in data
+        assert isinstance(data["events"], list)
+        assert "cursor" in data
+        assert "generated_at" in data

@@ -22,11 +22,34 @@ export interface OptimizationSuggestion {
   action_params: Record<string, unknown>;
 }
 
+export interface UsageStats {
+  available: boolean;
+  messages_today: number;
+  messages_week: number;
+  sessions_today: number;
+  tool_calls_today: number;
+  daily_breakdown: { date: string; messages: number; sessions: number; tool_calls: number }[];
+}
+
+export interface ConfigInventory {
+  plugins: number;
+  plugins_enabled: number;
+  mcp_servers: number;
+  mcp_servers_enabled: number;
+  claude_md_files: number;
+  commands: number;
+  hooks: number;
+  agents: number;
+  memory_files: number;
+}
+
 export interface DashboardData {
   total_tokens: number;
   categories: TokenCategory[];
   suggestions: OptimizationSuggestion[];
   top_consumers: TokenItem[];
+  usage_stats?: UsageStats;
+  inventory?: ConfigInventory;
 }
 
 // Derived for backward compat in components
@@ -96,6 +119,7 @@ export interface McpServer {
   env: Record<string, string>;
   enabled: boolean;
   scope: "global" | "project";
+  project_path?: string | null;
   tool_count: number;
   estimated_tokens: number;
 }
@@ -449,4 +473,87 @@ export interface InstanceSwitchRequest {
 
 export interface InstanceAddRequest {
   path: string;
+}
+
+// ---- Reliability ----
+
+export interface McpDiagnosticCheck {
+  code: string;
+  status: "ok" | "warn" | "fail";
+  message: string;
+}
+
+export interface McpDiagnosticReport {
+  name: string;
+  enabled: boolean;
+  server_type: "stdio" | "sse";
+  scope: "global" | "project";
+  project_path?: string | null;
+  status: "ok" | "warn" | "fail";
+  checks: McpDiagnosticCheck[];
+  checked_at: number;
+}
+
+export interface McpDiagnosticsResponse {
+  servers: McpDiagnosticReport[];
+  total: number;
+}
+
+export interface McpHealthItem {
+  name: string;
+  enabled: boolean;
+  scope: "global" | "project";
+  project_path?: string | null;
+  status: "ok" | "warn" | "fail" | "unknown";
+  error_code: string;
+  message: string;
+  checked_at: number;
+}
+
+export interface McpHealthResponse {
+  servers: McpHealthItem[];
+  updated_at: number;
+}
+
+export interface ClaudeMdDriftEvent {
+  path: string;
+  event_type: "added" | "changed" | "removed";
+  scope: "global" | "project";
+  last_modified: number;
+}
+
+export interface ClaudeMdDriftResponse {
+  events: ClaudeMdDriftEvent[];
+  cursor: string;
+  generated_at: number;
+}
+
+export interface ProviderLockEntry {
+  slug: string;
+  repo: string;
+  branch: string;
+  commit: string;
+  updated_at: string;
+}
+
+export interface ProviderProvenanceResponse {
+  version: number;
+  providers: ProviderLockEntry[];
+}
+
+export interface ConfigBundleExportResponse {
+  bundle: Record<string, unknown>;
+}
+
+export interface ConfigBundleValidationResponse {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface ConfigBundleApplyResponse {
+  applied: boolean;
+  changes: string[];
+  errors: string[];
+  warnings: string[];
 }

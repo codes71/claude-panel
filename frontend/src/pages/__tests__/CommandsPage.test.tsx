@@ -29,7 +29,7 @@ describe("CommandsPage", () => {
       error: null,
     } as any);
     render(<CommandsPage />, { wrapper });
-    expect(screen.getByText("Commands")).toBeInTheDocument();
+    expect(screen.getByText("New Command")).toBeInTheDocument();
   });
 
   it("shows error state", () => {
@@ -49,6 +49,6 @@ describe("CommandsPage", () => {
       error: null,
     } as any);
     render(<CommandsPage />, { wrapper });
-    expect(screen.getByText("Commands")).toBeInTheDocument();
+    expect(screen.getByText("New Command")).toBeInTheDocument();
   });
 });

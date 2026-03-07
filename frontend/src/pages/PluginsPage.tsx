@@ -51,13 +51,6 @@ export default function PluginsPage() {
 
   return (
     <Box>
-      <Typography variant="h1" sx={{ mb: 0.5 }}>
-        Plugins
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Manage installed Claude Code plugins
-      </Typography>
-
       <TextField
         placeholder="Search plugins, skills..."
         value={search}

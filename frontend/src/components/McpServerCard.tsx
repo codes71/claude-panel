@@ -28,6 +28,8 @@ export default function McpServerCard({
   onDelete,
   toggling,
 }: McpServerCardProps) {
+  const isProjectScoped = server.scope === "project";
+
   return (
     <Card
       sx={{
@@ -61,7 +63,27 @@ export default function McpServerCard({
                   },
                 }}
               />
+              <Chip
+                label={server.scope}
+                size="small"
+                variant="outlined"
+              />
             </Box>
+            {server.project_path && (
+              <Typography
+                variant="caption"
+                sx={{
+                  display: "block",
+                  color: "text.secondary",
+                  mb: 1,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.65rem",
+                  wordBreak: "break-all",
+                }}
+              >
+                {server.project_path}
+              </Typography>
+            )}
             <Typography
               variant="body2"
               sx={{
@@ -89,13 +111,14 @@ export default function McpServerCard({
             <Switch
               checked={server.enabled}
               onChange={(_, checked) => onToggle(server.name, checked)}
-              disabled={toggling}
+              disabled={toggling || isProjectScoped}
               color="primary"
             />
-            <Tooltip title="Delete server">
+            <Tooltip title={isProjectScoped ? "Project-scoped servers are read-only here" : "Delete server"}>
               <IconButton
                 size="small"
                 onClick={() => onDelete(server.name)}
+                disabled={isProjectScoped}
                 sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}
               >
                 <DeleteOutlineIcon sx={{ fontSize: 18 }} />

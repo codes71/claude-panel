@@ -26,3 +26,26 @@ class ErrorResponse(BaseModel):
 
     detail: str
     code: str | None = None
+
+
+class ConfigBundleResponse(BaseModel):
+    """Exported configuration bundle response."""
+
+    bundle: dict
+
+
+class ConfigBundleValidationResponse(BaseModel):
+    """Validation result for a configuration bundle."""
+
+    valid: bool = True
+    errors: list[str] = []
+    warnings: list[str] = []
+
+
+class ConfigBundleApplyResponse(BaseModel):
+    """Apply/dry-run result for a configuration bundle."""
+
+    applied: bool = False
+    changes: list[str] = []
+    errors: list[str] = []
+    warnings: list[str] = []
