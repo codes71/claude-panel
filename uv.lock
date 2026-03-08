@@ -4,7 +4,7 @@ requires-python = ">=3.12"
 
 [manifest]
 members = [
-    "claudeboard-backend",
+    "claude-panel-backend",
     "cli-agent-manager",
 ]
 
@@ -49,7 +49,7 @@ wheels = [
 ]
 
 [[package]]
-name = "claudeboard-backend"
+name = "claude-panel-backend"
 version = "1.5.0"
 source = { editable = "backend" }
 dependencies = [

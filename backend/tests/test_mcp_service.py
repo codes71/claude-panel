@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from ccm.services import mcp_service
+from claude_panel.services import mcp_service
 
 
 class TestListAllServers:

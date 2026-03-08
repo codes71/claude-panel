@@ -2,7 +2,7 @@
 
 import pytest
 
-from ccm.services import claude_md_service
+from claude_panel.services import claude_md_service
 
 
 class TestReadClaudeMd:
@@ -68,7 +68,7 @@ class TestListClaudeMd:
 
 class TestClaudeMdDrift:
     def test_list_drift_events_shape(self, mock_settings):
-        from ccm.services import claude_md_drift_service
+        from claude_panel.services import claude_md_drift_service
 
         data = claude_md_drift_service.list_drift_events()
         assert "events" in data

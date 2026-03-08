@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from ccm.services import visibility_service
+from claude_panel.services import visibility_service
 
 
 class TestListCommands:

@@ -1,6 +1,6 @@
 """Tests for config bundle service."""
 
-from ccm.services import config_bundle_service
+from claude_panel.services import config_bundle_service
 
 
 class TestConfigBundleService:

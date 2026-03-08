@@ -82,8 +82,8 @@ By default, Claude Panel tries port `8787`. If that port is busy, it automatical
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CCM_PORT` | Override the default port | `8787` |
-| `CCM_SCAN_ROOTS` | Comma-separated scan roots for CLAUDE.md discovery | Home directory |
+| `CLAUDE_PANEL_PORT` | Override the default port | `8787` |
+| `CLAUDE_PANEL_SCAN_ROOTS` | Comma-separated scan roots for CLAUDE.md discovery | Home directory |
 
 ## Troubleshooting
 
@@ -94,7 +94,7 @@ Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 Ensure `python3` (or `python`) 3.12+ is installed and on your PATH.
 
 **Port already in use**
-Either let Claude Panel auto-select a free port, use `--port <number>` with a different port, or set `CCM_PORT` to change the default.
+Either let Claude Panel auto-select a free port, use `--port <number>` with a different port, or set `CLAUDE_PANEL_PORT` to change the default.
 
 **First run is slow**
 On first launch, `uv` creates a Python virtual environment and installs backend dependencies. Subsequent starts are fast.

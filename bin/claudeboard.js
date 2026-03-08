@@ -10,12 +10,13 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const packageRoot = path.resolve(__dirname, "..");
-const staticDir = path.join(packageRoot, "backend", "ccm", "static");
+const staticDir = path.join(packageRoot, "backend", "claude_panel", "static");
 
 const pkg = JSON.parse(readFileSync(path.join(packageRoot, "package.json"), "utf-8"));
 
 const PURPLE = "\x1b[35m";
 const CYAN = "\x1b[36m";
+const YELLOW = "\x1b[33m";
 const DIM = "\x1b[2m";
 const BOLD = "\x1b[1m";
 const RESET = "\x1b[0m";
@@ -112,7 +113,7 @@ async function choosePort(userPort) {
     return userPort;
   }
 
-  const defaultPort = Number.parseInt(process.env.CCM_PORT || "8787", 10);
+  const defaultPort = Number.parseInt(process.env.CLAUDE_PANEL_PORT || process.env.CCM_PORT || "8787", 10);
   if (Number.isInteger(defaultPort) && defaultPort > 0 && defaultPort <= 65535) {
     const free = await isPortFree(defaultPort);
     if (free) {
@@ -177,6 +178,10 @@ async function main() {
 
   printBanner();
 
+  if (process.env.CCM_PORT && !process.env.CLAUDE_PANEL_PORT) {
+    console.log(`${YELLOW}⚠ CCM_PORT is deprecated. Use CLAUDE_PANEL_PORT instead.${RESET}`);
+  }
+
   const port = await choosePort(args.port);
   const appUrl = `http://127.0.0.1:${port}`;
   const healthUrl = `${appUrl}/api/health`;
@@ -187,7 +192,7 @@ async function main() {
     [
       "run",
       "--project", path.join(packageRoot, "backend"),
-      "uvicorn", "ccm.main:app",
+      "uvicorn", "claude_panel.main:app",
       "--host", "127.0.0.1",
       "--port", String(port),
     ],

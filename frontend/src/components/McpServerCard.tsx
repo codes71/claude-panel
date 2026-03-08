@@ -12,6 +12,7 @@ import { alpha } from "@mui/material/styles";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import WifiIcon from "@mui/icons-material/Wifi";
+import ExtensionIcon from "@mui/icons-material/Extension";
 import type { McpServer } from "../types";
 import TokenBadge from "./TokenBadge";
 
@@ -28,7 +29,7 @@ export default function McpServerCard({
   onDelete,
   toggling,
 }: McpServerCardProps) {
-  const isProjectScoped = server.scope === "project";
+  const isReadOnly = server.scope === "project" || server.scope === "plugin";
 
   return (
     <Card
@@ -64,9 +65,15 @@ export default function McpServerCard({
                 }}
               />
               <Chip
+                icon={server.scope === "plugin" ? <ExtensionIcon sx={{ fontSize: 14 }} /> : undefined}
                 label={server.scope}
                 size="small"
                 variant="outlined"
+                sx={server.scope === "plugin" ? {
+                  borderColor: "#7C3AED",
+                  color: "#7C3AED",
+                  "& .MuiChip-icon": { color: "#7C3AED" },
+                } : undefined}
               />
             </Box>
             {server.project_path && (
@@ -82,6 +89,21 @@ export default function McpServerCard({
                 }}
               >
                 {server.project_path}
+              </Typography>
+            )}
+            {server.scope === "plugin" && server.plugin_id && (
+              <Typography
+                variant="caption"
+                sx={{
+                  display: "block",
+                  color: "#7C3AED",
+                  mb: 1,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.65rem",
+                  wordBreak: "break-all",
+                }}
+              >
+                Managed by plugin: {server.plugin_id}
               </Typography>
             )}
             <Typography
@@ -111,14 +133,14 @@ export default function McpServerCard({
             <Switch
               checked={server.enabled}
               onChange={(_, checked) => onToggle(server.name, checked)}
-              disabled={toggling || isProjectScoped}
+              disabled={toggling || isReadOnly}
               color="primary"
             />
-            <Tooltip title={isProjectScoped ? "Project-scoped servers are read-only here" : "Delete server"}>
+            <Tooltip title={isReadOnly ? (server.scope === "plugin" ? "Managed by plugin" : "Project-scoped servers are read-only here") : "Delete server"}>
               <IconButton
                 size="small"
                 onClick={() => onDelete(server.name)}
-                disabled={isProjectScoped}
+                disabled={isReadOnly}
                 sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}
               >
                 <DeleteOutlineIcon sx={{ fontSize: 18 }} />

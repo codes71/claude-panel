@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from ccm.services import claude_json_service
+from claude_panel.services import claude_json_service
 
 
 class TestReadClaudeJson:

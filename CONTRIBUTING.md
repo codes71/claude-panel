@@ -39,7 +39,7 @@ This starts the FastAPI backend on port 8000 and the Vite dev server on port 517
 ```
 claude-panel/
   backend/
-    ccm/
+    claude_panel/
       config.py          # App configuration (pydantic-settings)
       main.py            # FastAPI app factory
       models/            # Pydantic request/response models

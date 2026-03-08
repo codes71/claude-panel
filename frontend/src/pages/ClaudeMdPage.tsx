@@ -27,6 +27,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import FolderIcon from "@mui/icons-material/Folder";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import PublicIcon from "@mui/icons-material/Public";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import SearchIcon from "@mui/icons-material/Search";
@@ -40,7 +41,7 @@ const SCOPE_COLORS: Record<string, string> = {
   local: "#34D399",
 };
 
-const STORAGE_KEY = "ccm-tree-expanded";
+const STORAGE_KEY = "claude-panel-tree-expanded";
 
 function loadExpanded(): Set<string> {
   try {
@@ -106,7 +107,11 @@ function TreeNodeItem({ node, selectedPath, onSelect, depth, filter, parentPath,
         selected={isSelected}
       >
         <ListItemIcon sx={{ minWidth: 28 }}>
-          <InsertDriveFileIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+          {node.scope === "global" ? (
+            <PublicIcon sx={{ fontSize: 16, color: SCOPE_COLORS.global }} />
+          ) : (
+            <InsertDriveFileIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+          )}
         </ListItemIcon>
         <ListItemText
           primary={

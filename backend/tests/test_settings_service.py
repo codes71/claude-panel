@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from ccm.services import settings_service
+from claude_panel.services import settings_service
 
 
 class TestReadSettings:

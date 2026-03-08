@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const frontendRoot = path.join(repoRoot, "frontend");
-const staticDir = path.join(repoRoot, "backend", "ccm", "static");
+const staticDir = path.join(repoRoot, "backend", "claude_panel", "static");
 
 function run(command, args, cwd) {
   return new Promise((resolve, reject) => {

@@ -38,6 +38,14 @@ Workflow Orchestration
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
+## Local Development & npm Package
+
+- Project is globally linked via `npm link` — typing `claude-panel` launches the app
+- Backend Python changes reflect immediately (symlink, not copy)
+- Frontend React changes require rebuild: `npm run build:frontend`
+- Quick refresh workflow: `npm run build:frontend && claude-panel`
+- Default port: `8787` (configurable via `--port` or `CLAUDE_PANEL_PORT` env var)
+
 ## Task Management
 
 1. **Plan First**: Write plan to `tasks/todo.md` with checkable items

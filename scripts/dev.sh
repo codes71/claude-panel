@@ -3,10 +3,10 @@ set -e
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo "Starting CCM development servers..."
+echo "Starting Claude Panel development servers..."
 
 # Start backend
-(cd "$ROOT" && uv run uvicorn ccm.main:app --reload --host 127.0.0.1 --port 8000) &
+(cd "$ROOT" && uv run uvicorn claude_panel.main:app --reload --host 127.0.0.1 --port 8000) &
 BACKEND_PID=$!
 
 # Start frontend

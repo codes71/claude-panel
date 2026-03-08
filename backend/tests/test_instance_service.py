@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ccm.services import instance_service
+from claude_panel.services import instance_service
 
 
 @pytest.fixture()

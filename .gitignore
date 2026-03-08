@@ -11,7 +11,7 @@ venv/
 # Node
 node_modules/
 frontend/dist/
-backend/ccm/static/
+backend/claude_panel/static/
 
 # IDE
 .vscode/

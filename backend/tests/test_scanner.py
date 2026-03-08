@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from ccm.services.scanner import scan_config_tree, _discover_plugins, _discover_mcp_servers, _discover_commands, _discover_claude_md_files
+from claude_panel.services.scanner import scan_config_tree, _discover_plugins, _discover_mcp_servers, _discover_commands, _discover_claude_md_files
 
 
 class TestScanConfigTree:

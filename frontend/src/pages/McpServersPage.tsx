@@ -29,6 +29,7 @@ export default function McpServersPage() {
   const servers = data?.servers ?? [];
   const globalServers = servers.filter((server) => server.scope === "global");
   const projectServers = servers.filter((server) => server.scope === "project");
+  const pluginServers = servers.filter((server) => server.scope === "plugin");
   const toggleServer = useToggleMcpServer();
   const createServer = useCreateMcpServer();
   const deleteServer = useDeleteMcpServer();
@@ -181,6 +182,7 @@ export default function McpServersPage() {
 
       {renderSection("Global MCP Servers", globalServers, "~/.claude.json")}
       {renderSection("Project MCP Servers", projectServers, "projects[*].mcpServers")}
+      {pluginServers.length > 0 && renderSection("Plugin MCP Servers", pluginServers, "plugins")}
 
       {/* Add Server Dialog */}
       <Dialog open={addOpen} onClose={resetForm} maxWidth="sm" fullWidth>

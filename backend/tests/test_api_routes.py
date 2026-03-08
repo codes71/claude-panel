@@ -6,12 +6,12 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from ccm.main import create_app
+from claude_panel.main import create_app
 
 
 @pytest.fixture()
 def client(mock_settings):
-    with patch("ccm.services.instance_service.load_persisted_instance", return_value=None):
+    with patch("claude_panel.services.instance_service.load_persisted_instance", return_value=None):
         app = create_app()
         with TestClient(app) as c:
             yield c

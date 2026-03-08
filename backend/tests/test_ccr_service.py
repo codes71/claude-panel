@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ccm.services import ccr_service
+from claude_panel.services import ccr_service
 
 
 @pytest.fixture()

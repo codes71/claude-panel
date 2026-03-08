@@ -24,7 +24,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import TokenBadge from "../../components/TokenBadge";
 import type { CommandInfo, CommandNamespace } from "../../types";
 
-const STORAGE_KEY = "ccm-cmd-expanded";
+const STORAGE_KEY = "claude-panel-cmd-expanded";
 
 function loadExpanded(): Set<string> {
   try {

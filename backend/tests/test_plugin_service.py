@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from ccm.services import plugin_service
+from claude_panel.services import plugin_service
 
 
 class TestReadInstalled:

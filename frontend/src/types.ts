@@ -118,8 +118,10 @@ export interface McpServer {
   args: string[];
   env: Record<string, string>;
   enabled: boolean;
-  scope: "global" | "project";
+  scope: "global" | "project" | "plugin";
   project_path?: string | null;
+  plugin_id?: string | null;
+  read_only?: boolean;
   tool_count: number;
   estimated_tokens: number;
 }
@@ -487,7 +489,7 @@ export interface McpDiagnosticReport {
   name: string;
   enabled: boolean;
   server_type: "stdio" | "sse";
-  scope: "global" | "project";
+  scope: "global" | "project" | "plugin";
   project_path?: string | null;
   status: "ok" | "warn" | "fail";
   checks: McpDiagnosticCheck[];
@@ -502,7 +504,7 @@ export interface McpDiagnosticsResponse {
 export interface McpHealthItem {
   name: string;
   enabled: boolean;
-  scope: "global" | "project";
+  scope: "global" | "project" | "plugin";
   project_path?: string | null;
   status: "ok" | "warn" | "fail" | "unknown";
   error_code: string;

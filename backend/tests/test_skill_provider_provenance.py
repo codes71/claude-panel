@@ -1,6 +1,6 @@
 """Tests for provider provenance lock behavior."""
 
-from ccm.services import provider_provenance_service, skill_provider_service
+from claude_panel.services import provider_provenance_service, skill_provider_service
 
 
 def test_add_provider_records_commit_lock(mock_settings, monkeypatch):

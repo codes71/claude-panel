@@ -2,7 +2,7 @@
 
 import pytest
 
-from ccm.services import command_service
+from claude_panel.services import command_service
 
 
 class TestListCommands:

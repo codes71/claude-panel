@@ -1,7 +1,7 @@
 # Reliability Control Plane
 
 ## Overview
-ClaudeBoard now includes a reliability-first control plane focused on:
+Claude Panel now includes a reliability-first control plane focused on:
 - MCP diagnostics and health visibility
 - CLAUDE.md drift detection and lint findings
 - Provider provenance locks (repo/branch/commit)
