@@ -1,10 +1,10 @@
 {
-  "name": "claudeboard",
-  "version": "2.0.0",
+  "name": "claude-panel",
+  "version": "1.0.0",
   "description": "Local dashboard and control panel for Claude Code configuration",
   "type": "module",
   "bin": {
-    "claudeboard": "bin/claudeboard.js"
+    "claude-panel": "bin/claudeboard.js"
   },
   "scripts": {
     "start": "node bin/claudeboard.js",
@@ -40,11 +40,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codes71/claudeboard.git"
+    "url": "git+https://github.com/codes71/claude-panel.git"
   },
-  "homepage": "https://github.com/codes71/claudeboard#readme",
+  "homepage": "https://github.com/codes71/claude-panel#readme",
   "bugs": {
-    "url": "https://github.com/codes71/claudeboard/issues"
+    "url": "https://github.com/codes71/claude-panel/issues"
   },
   "engines": {
     "node": ">=18"
