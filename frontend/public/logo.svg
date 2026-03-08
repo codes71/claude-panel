@@ -34,6 +34,6 @@
   <rect x="292" y="276" width="24" height="44" rx="4" fill="url(#grad)" opacity="0.65"/>
   <rect x="324" y="256" width="24" height="64" rx="4" fill="url(#grad)" opacity="0.8"/>
   <rect x="356" y="236" width="24" height="84" rx="4" fill="url(#grad)" opacity="0.95"/>
-  <!-- "CB" text at bottom -->
-  <text x="256" y="420" text-anchor="middle" font-family="monospace" font-weight="700" font-size="72" fill="url(#grad)">CB</text>
+  <!-- "CP" text at bottom -->
+  <text x="256" y="420" text-anchor="middle" font-family="monospace" font-weight="700" font-size="72" fill="url(#grad)">CP</text>
 </svg>
