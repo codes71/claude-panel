@@ -15,6 +15,7 @@ from ccm.models.scanner import (
     MemoryFileInfo,
     PluginInfo,
 )
+from ccm.services.claude_json_service import list_mcp_server_entries
 
 
 def _read_json(path: Path) -> dict | None:
@@ -97,17 +98,16 @@ def _discover_mcp_servers(claude_json: dict | None) -> list[McpServerInfo]:
     if not claude_json:
         return servers
 
-    mcp_servers = claude_json.get("mcpServers", {})
-    for name, config in mcp_servers.items():
-        server_type = "sse" if "url" in config else "stdio"
+    for entry in list_mcp_server_entries(claude_json):
         servers.append(McpServerInfo(
-            name=name,
-            server_type=server_type,
-            command=config.get("command", config.get("url", "")),
-            args=config.get("args", []),
-            env=config.get("env", {}),
-            enabled=True,
-            scope="global",
+            name=entry["name"],
+            server_type=entry["server_type"],
+            command=entry["command"],
+            args=entry["args"],
+            env=entry["env"],
+            enabled=entry["enabled"],
+            scope=entry["scope"],
+            project_path=entry.get("project_path"),
         ))
 
     return servers

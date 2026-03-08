@@ -24,6 +24,7 @@ class McpServerInfo:
     env: dict[str, str] = field(default_factory=dict)
     enabled: bool = True
     scope: str = "global"  # global or project
+    project_path: str | None = None
 
 
 @dataclass

@@ -30,7 +30,7 @@ describe("SettingsPage", () => {
       error: null,
     } as any);
     render(<SettingsPage />, { wrapper });
-    expect(screen.getByText("Settings")).toBeInTheDocument();
+    expect(screen.getByText("Environment Variables")).toBeInTheDocument();
   });
 
   it("renders with empty data (instance switch scenario)", () => {
@@ -45,7 +45,7 @@ describe("SettingsPage", () => {
       error: null,
     } as any);
     render(<SettingsPage />, { wrapper });
-    expect(screen.getByText("Settings")).toBeInTheDocument();
+    expect(screen.getByText("Environment Variables")).toBeInTheDocument();
   });
 
   it("shows error state", () => {
@@ -65,6 +65,6 @@ describe("SettingsPage", () => {
       error: null,
     } as any);
     render(<SettingsPage />, { wrapper });
-    expect(screen.getByText("Settings")).toBeInTheDocument();
+    expect(screen.getByText("Permissions")).toBeInTheDocument();
   });
 });

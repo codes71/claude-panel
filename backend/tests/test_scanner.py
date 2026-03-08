@@ -81,3 +81,23 @@ class TestDiscoverMcpServers:
 
     def test_empty_servers(self):
         assert _discover_mcp_servers({"mcpServers": {}}) == []
+
+    def test_with_project_scoped_servers(self):
+        claude_json = {
+            "mcpServers": {
+                "global-server": {"command": "node", "args": ["global.js"]},
+            },
+            "projects": {
+                "/tmp/project-a": {
+                    "mcpServers": {
+                        "project-server": {"url": "https://example.com/mcp"},
+                    }
+                }
+            },
+        }
+
+        servers = _discover_mcp_servers(claude_json)
+
+        assert len(servers) == 2
+        assert any(s.name == "global-server" and s.scope == "global" for s in servers)
+        assert any(s.name == "project-server" and s.scope == "project" for s in servers)

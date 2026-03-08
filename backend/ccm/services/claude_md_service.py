@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ccm.config import settings
 from ccm.services.backup import safe_write_text
+from ccm.services.claude_md_lint_service import lint_claude_md
 from ccm.services.token_estimator import estimate_file_tokens
 
 SKIP_DIRS = {
@@ -15,11 +16,25 @@ SKIP_DIRS = {
 }
 
 
+def _scan_roots() -> list[Path]:
+    roots = settings.scan_roots if settings.scan_roots else [Path.home()]
+    # Resolve and de-duplicate while preserving order.
+    seen: set[str] = set()
+    unique_roots: list[Path] = []
+    for root in roots:
+        root_path = Path(root).expanduser()
+        key = str(root_path.resolve()) if root_path.exists() else str(root_path)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_roots.append(root_path)
+    return unique_roots
+
+
 def _find_claude_md_files() -> list[dict]:
-    """Recursively find all CLAUDE.md files under the user's home directory."""
+    """Recursively find all CLAUDE.md files under configured scan roots."""
     files: list[dict] = []
     seen_paths: set[str] = set()
-    home = Path.home()
     claude_home = settings.claude_home
 
     # Global CLAUDE.md (in ~/.claude/)
@@ -39,33 +54,62 @@ def _find_claude_md_files() -> list[dict]:
         except OSError:
             pass
 
-    # Recursive scan of home directory
-    for dirpath, dirnames, filenames in os.walk(str(home)):
-        # Filter out hidden and junk directories IN-PLACE to prevent os.walk from descending
-        dirnames[:] = [
-            d for d in dirnames
-            if d not in SKIP_DIRS and not d.startswith(".")
-        ]
+    # Recursive scan of configured roots
+    for root in _scan_roots():
+        if not root.exists() or not root.is_dir():
+            continue
+        for dirpath, dirnames, filenames in os.walk(str(root)):
+            # Filter out hidden and junk directories IN-PLACE to prevent os.walk from descending
+            dirnames[:] = [
+                d for d in dirnames
+                if d not in SKIP_DIRS and not d.startswith(".")
+            ]
 
-        if "CLAUDE.md" in filenames:
-            md_path = Path(dirpath) / "CLAUDE.md"
-            abs_path = str(md_path.resolve())
-            if abs_path in seen_paths:
-                continue
-            seen_paths.add(abs_path)
-            try:
-                stat = md_path.stat()
-                files.append({
-                    "path": abs_path,
-                    "scope": "project",
-                    "size_bytes": stat.st_size,
-                    "token_estimate": estimate_file_tokens(stat.st_size),
-                    "last_modified": stat.st_mtime,
-                })
-            except OSError:
-                continue
+            if "CLAUDE.md" in filenames:
+                md_path = Path(dirpath) / "CLAUDE.md"
+                abs_path = str(md_path.resolve())
+                if abs_path in seen_paths:
+                    continue
+                seen_paths.add(abs_path)
+                try:
+                    stat = md_path.stat()
+                    files.append({
+                        "path": abs_path,
+                        "scope": "project",
+                        "size_bytes": stat.st_size,
+                        "token_estimate": estimate_file_tokens(stat.st_size),
+                        "last_modified": stat.st_mtime,
+                    })
+                except OSError:
+                    continue
 
     return files
+
+
+def _collect_lint_issues(files: list[dict]) -> list[dict]:
+    issues: list[dict] = []
+    for file_meta in files:
+        file_path = file_meta["path"]
+        try:
+            content = Path(file_path).read_text(encoding="utf-8")
+        except OSError:
+            issues.append({
+                "path": file_path,
+                "code": "READ_ERROR",
+                "severity": "warning",
+                "message": "Could not read CLAUDE.md for linting.",
+            })
+            continue
+
+        issues.extend(
+            lint_claude_md(
+                content=content,
+                path=file_path,
+                token_estimate=file_meta.get("token_estimate", 0),
+            )
+        )
+
+    return issues
 
 
 def list_claude_md_files() -> dict:
@@ -73,7 +117,13 @@ def list_claude_md_files() -> dict:
     files = _find_claude_md_files()
     total_tokens = sum(f["token_estimate"] for f in files)
     tree = _build_tree(files)
-    return {"files": files, "total_tokens": total_tokens, "tree": tree}
+    return {
+        "files": files,
+        "total_tokens": total_tokens,
+        "tree": tree,
+        "issues": _collect_lint_issues(files),
+        "scan_roots": [str(p) for p in _scan_roots()],
+    }
 
 
 def _build_tree(files: list[dict]) -> list[dict]:

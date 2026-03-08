@@ -21,6 +21,24 @@ async def list_mcp_servers():
     return {"servers": servers, "total_tokens": total_tokens}
 
 
+@router.get("/mcp/diagnostics")
+async def list_mcp_diagnostics():
+    return mcp_service.diagnose_all_servers()
+
+
+@router.get("/mcp/health")
+async def list_mcp_health():
+    return mcp_service.list_health()
+
+
+@router.get("/mcp/{name}/diagnose")
+async def diagnose_mcp_server(name: str):
+    try:
+        return mcp_service.diagnose_server(name)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @router.put("/mcp/{name}/toggle")
 async def toggle_mcp_server(name: str, enabled: bool = True):
     try:

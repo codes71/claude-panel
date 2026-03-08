@@ -23,6 +23,15 @@ class ClaudeMdFile(BaseModel):
     last_modified: datetime | None = None
 
 
+class ClaudeMdIssue(BaseModel):
+    """A lint or scanning issue associated with a CLAUDE.md file."""
+
+    path: str
+    code: str
+    severity: str = "warning"
+    message: str
+
+
 class ClaudeMdUpdateRequest(BaseModel):
     """Request to update an existing CLAUDE.md file."""
 
@@ -61,3 +70,22 @@ class ClaudeMdTreeResponse(BaseModel):
     tree: list[ClaudeMdTreeNode] = Field(default_factory=list)
     files: list[ClaudeMdFile] = Field(default_factory=list)
     total_tokens: int = 0
+    issues: list[ClaudeMdIssue] = Field(default_factory=list)
+    scan_roots: list[str] = Field(default_factory=list)
+
+
+class ClaudeMdDriftEvent(BaseModel):
+    """A drift event detected between CLAUDE.md snapshots."""
+
+    path: str
+    event_type: str  # "added" | "changed" | "removed"
+    scope: ClaudeMdScope = ClaudeMdScope.PROJECT
+    last_modified: float = 0
+
+
+class ClaudeMdDriftResponse(BaseModel):
+    """Snapshot drift response for CLAUDE.md files."""
+
+    events: list[ClaudeMdDriftEvent] = Field(default_factory=list)
+    cursor: str = ""
+    generated_at: float = 0

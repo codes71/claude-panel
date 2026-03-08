@@ -28,6 +28,44 @@ def get_mcp_servers() -> dict:
     return data.get("mcpServers", {})
 
 
+def list_mcp_server_entries(data: dict | None = None) -> list[dict]:
+    """Return normalized MCP server entries from global and project scopes."""
+    payload = read_claude_json() if data is None else data
+    if not isinstance(payload, dict):
+        return []
+
+    entries: list[dict] = []
+
+    def append_entries(servers: dict | None, scope: str, project_path: str | None = None) -> None:
+        if not isinstance(servers, dict):
+            return
+        for name, config in servers.items():
+            if not isinstance(config, dict):
+                continue
+            is_network_server = "url" in config or config.get("type") == "http"
+            entries.append({
+                "name": name,
+                "server_type": "sse" if is_network_server else "stdio",
+                "command": config.get("command", config.get("url", "")),
+                "args": config.get("args", []) if isinstance(config.get("args"), list) else [],
+                "env": config.get("env", {}) if isinstance(config.get("env"), dict) else {},
+                "enabled": True,
+                "scope": scope,
+                "project_path": project_path,
+            })
+
+    append_entries(payload.get("mcpServers"), "global")
+
+    projects = payload.get("projects", {})
+    if isinstance(projects, dict):
+        for project_path, project_config in sorted(projects.items()):
+            if not isinstance(project_config, dict):
+                continue
+            append_entries(project_config.get("mcpServers"), "project", str(project_path))
+
+    return entries
+
+
 def set_mcp_servers(servers: dict) -> dict:
     """Write mcpServers section, preserving all other keys."""
     data = read_claude_json()

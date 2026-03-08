@@ -27,7 +27,7 @@ describe("MarketplacePage", () => {
       error: null,
     } as any);
     render(<MarketplacePage />, { wrapper });
-    expect(screen.getByRole("heading", { name: "Marketplace" })).toBeInTheDocument();
+    expect(screen.getByText("Add Source")).toBeInTheDocument();
   });
 
   it("shows no plugins message", () => {
@@ -67,6 +67,6 @@ describe("MarketplacePage", () => {
       error: null,
     } as any);
     render(<MarketplacePage />, { wrapper });
-    expect(screen.getByRole("heading", { name: "Marketplace" })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search plugins...")).toBeInTheDocument();
   });
 });

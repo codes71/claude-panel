@@ -25,6 +25,33 @@ class TestListAllServers:
         servers = mcp_service.list_all_servers()
         assert servers == []
 
+    def test_includes_project_scoped_servers(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({
+            "mcpServers": {
+                "global-server": {"command": "node", "args": ["global.js"]},
+            },
+            "projects": {
+                "/tmp/project-a": {
+                    "mcpServers": {
+                        "project-server": {"url": "https://example.com/mcp"},
+                    }
+                }
+            },
+        }))
+
+        servers = mcp_service.list_all_servers()
+
+        assert len(servers) == 2
+        global_server = next(s for s in servers if s["name"] == "global-server")
+        project_server = next(s for s in servers if s["name"] == "project-server")
+
+        assert global_server["scope"] == "global"
+        assert global_server["project_path"] is None
+        assert project_server["scope"] == "project"
+        assert project_server["project_path"] == "/tmp/project-a"
+        assert project_server["server_type"] == "sse"
+        assert project_server["command"] == "https://example.com/mcp"
+
 
 class TestToggleServer:
     def test_disable_server(self, mock_settings):
@@ -49,3 +76,20 @@ class TestToggleServer:
     def test_already_enabled(self, mock_settings):
         result = mcp_service.toggle_server("test-server", True)
         assert result["status"] == "already_enabled"
+
+
+class TestDiagnostics:
+    def test_diagnose_server_returns_checks(self, mock_settings):
+        result = mcp_service.diagnose_server("test-server")
+        assert result["name"] == "test-server"
+        assert "checks" in result
+        assert isinstance(result["checks"], list)
+        assert "status" in result
+
+
+class TestHealth:
+    def test_list_health_returns_servers(self, mock_settings):
+        result = mcp_service.list_health()
+        assert "servers" in result
+        assert isinstance(result["servers"], list)
+        assert "updated_at" in result

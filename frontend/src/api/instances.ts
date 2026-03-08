@@ -30,18 +30,25 @@ export function useSwitchInstance() {
       post<InstanceInfo>("/instances/switch", data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["instances"] });
+      qc.invalidateQueries({ queryKey: ["instances", "active"] });
       qc.invalidateQueries({ queryKey: ["settings"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["plugins"] });
-      qc.invalidateQueries({ queryKey: ["mcp"] });
+      qc.invalidateQueries({ queryKey: ["mcp-servers"] });
+      qc.invalidateQueries({ queryKey: ["mcp-diagnostics"] });
+      qc.invalidateQueries({ queryKey: ["mcp-health"] });
       qc.invalidateQueries({ queryKey: ["claude-md"] });
+      qc.invalidateQueries({ queryKey: ["claude-md-drift"] });
       qc.invalidateQueries({ queryKey: ["visibility"] });
       qc.invalidateQueries({ queryKey: ["ccr"] });
       qc.invalidateQueries({ queryKey: ["commands"] });
+      qc.invalidateQueries({ queryKey: ["command"] });
       qc.invalidateQueries({ queryKey: ["marketplace"] });
       qc.invalidateQueries({ queryKey: ["providers"] });
       qc.invalidateQueries({ queryKey: ["skill-providers"] });
       qc.invalidateQueries({ queryKey: ["skill-catalog"] });
+      qc.invalidateQueries({ queryKey: ["provider-provenance"] });
+      qc.invalidateQueries({ queryKey: ["config-bundle-export"] });
     },
   });
 }

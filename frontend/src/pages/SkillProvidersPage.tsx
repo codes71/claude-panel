@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -158,6 +159,15 @@ export default function SkillProvidersPage() {
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Manage marketplace sources that supply plugins to the Marketplace
       </Typography>
+      <Button
+        component={RouterLink}
+        to="/reliability"
+        variant="text"
+        size="small"
+        sx={{ mb: 2, px: 0 }}
+      >
+        View provider provenance lock
+      </Button>
 
       {/* Grid */}
       {isLoading ? (

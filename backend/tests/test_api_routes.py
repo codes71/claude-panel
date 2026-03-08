@@ -71,3 +71,109 @@ class TestCommandEndpoints:
         data = response.json()
         assert "commands" in data
         assert "total_count" in data
+
+
+class TestClaudeMdEndpoints:
+    def test_list_claude_md_includes_issues_and_scan_roots(
+        self, client, mock_settings, monkeypatch, tmp_path
+    ):
+        project = tmp_path / "project-b"
+        project.mkdir(parents=True, exist_ok=True)
+        (project / "CLAUDE.md").write_text("", encoding="utf-8")
+
+        monkeypatch.setattr(mock_settings, "scan_roots", [tmp_path])
+        response = client.get("/api/claude-md")
+        assert response.status_code == 200
+        data = response.json()
+        assert "issues" in data
+        assert isinstance(data["issues"], list)
+        assert "scan_roots" in data
+        assert str(tmp_path) in data["scan_roots"]
+
+    def test_get_claude_md_drift(self, client):
+        response = client.get("/api/claude-md/drift")
+        assert response.status_code == 200
+        data = response.json()
+        assert "events" in data
+        assert isinstance(data["events"], list)
+        assert "cursor" in data
+        assert "generated_at" in data
+
+
+class TestMcpEndpoints:
+    def test_list_mcp_servers_includes_project_scope(self, client, mock_settings):
+        mock_settings.claude_json_path.write_text(json.dumps({
+            "mcpServers": {
+                "global-server": {"command": "node", "args": ["global.js"]},
+            },
+            "projects": {
+                "/tmp/project-a": {
+                    "mcpServers": {
+                        "project-server": {"url": "https://example.com/mcp"},
+                    }
+                }
+            },
+        }))
+
+        response = client.get("/api/mcp")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["servers"]) == 2
+        assert any(
+            s["name"] == "project-server"
+            and s["scope"] == "project"
+            and s["project_path"] == "/tmp/project-a"
+            for s in data["servers"]
+        )
+
+    def test_get_mcp_diagnostics(self, client):
+        response = client.get("/api/mcp/diagnostics")
+        assert response.status_code == 200
+        data = response.json()
+        assert "servers" in data
+        assert isinstance(data["servers"], list)
+
+    def test_get_mcp_server_diagnose(self, client):
+        response = client.get("/api/mcp/test-server/diagnose")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "test-server"
+        assert "checks" in data
+
+    def test_get_mcp_health_history(self, client):
+        response = client.get("/api/mcp/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert "servers" in data
+
+
+class TestSkillProviderEndpoints:
+    def test_get_skill_provider_provenance(self, client):
+        response = client.get("/api/skill-providers/provenance")
+        assert response.status_code == 200
+        data = response.json()
+        assert "providers" in data
+
+
+class TestConfigBundleEndpoints:
+    def test_export_config_bundle(self, client):
+        response = client.get("/api/config-bundle/export")
+        assert response.status_code == 200
+        data = response.json()
+        assert "bundle" in data
+
+    def test_validate_config_bundle(self, client):
+        response = client.post("/api/config-bundle/validate", json={"bundle": {}})
+        assert response.status_code == 200
+        data = response.json()
+        assert "errors" in data
+
+    def test_apply_config_bundle_dry_run(self, client):
+        response = client.post(
+            "/api/config-bundle/apply",
+            json={"bundle": {"version": 1}, "dry_run": True},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "applied" in data
+        assert "changes" in data

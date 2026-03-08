@@ -151,8 +151,7 @@ export default function MarketplacePage() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 0.5, flexWrap: "wrap" }}>
-        <Typography variant="h1">Marketplace</Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, flexWrap: "wrap" }}>
         {data && (
           <Box sx={{ display: "flex", gap: 1 }}>
             <Chip label={`${data.total_available} available`} size="small" variant="outlined" />
@@ -175,9 +174,6 @@ export default function MarketplacePage() {
           </Button>
         </Box>
       </Box>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Browse and install Claude Code plugins
-      </Typography>
 
       <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap", alignItems: "center" }}>
         <TextField
