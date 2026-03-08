@@ -12,7 +12,7 @@ A clear description of the bug.
 
 ## Steps to Reproduce
 
-1. Run `claudeboard ...`
+1. Run `claude-panel ...`
 2. Navigate to ...
 3. Click on ...
 4. See error
@@ -27,7 +27,7 @@ What actually happened.
 
 ## Environment
 
-- ClaudeBoard version:
+- Claude Panel version:
 - OS:
 - Node.js version:
 - Python version:

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to ClaudeBoard are documented in this file.
+All notable changes to Claude Panel are documented in this file.
 
 ## [2.1.0] - 2026-03-06
 
@@ -99,7 +99,7 @@ All notable changes to ClaudeBoard are documented in this file.
 ## [1.6.0] - 2026-03-03
 
 ### npm Packaging
-- Installable via `npx claudeboard` or `npm install -g claudeboard`
+- Installable via `npx claude-panel` or `npm install -g claude-panel`
 - CLI with `--port`, `--no-open`, `--help` options
 - Platform checks (Linux/macOS), dependency validation (uv, Python)
 - Dynamic port selection with health-check polling and browser auto-open
@@ -127,7 +127,7 @@ All notable changes to ClaudeBoard are documented in this file.
 ## [1.5.0] - 2026-03-02
 
 ### Rebranding
-- Renamed project from "CCM" / "Claude Code Config Manager" to **ClaudeBoard** — "Claude Code Control Panel"
+- Renamed project from "CCM" / "Claude Code Config Manager" to **Claude Panel** — "Claude Code Control Panel"
 - Updated sidebar branding with logo, new name, and tagline
 - Added custom favicon (`favicon.svg`) and sidebar logo (`logo.svg`)
 - Updated HTML title and meta tags

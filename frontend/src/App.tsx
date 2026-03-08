@@ -54,7 +54,7 @@ const NAV_ITEMS = [
 
 export default function App() {
   const [collapsed, setCollapsed] = useState(() => {
-    try { return localStorage.getItem("claudeboard-sidebar") === "collapsed"; } catch { return false; }
+    try { return localStorage.getItem("claude-panel-sidebar") === "collapsed"; } catch { return false; }
   });
   const { mode, toggle: toggleTheme } = useThemeMode();
   const theme = useTheme();
@@ -65,7 +65,7 @@ export default function App() {
   const toggleSidebar = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
-      try { localStorage.setItem("claudeboard-sidebar", next ? "collapsed" : "expanded"); } catch { /* */ }
+      try { localStorage.setItem("claude-panel-sidebar", next ? "collapsed" : "expanded"); } catch { /* */ }
       return next;
     });
   }, []);
@@ -119,7 +119,7 @@ export default function App() {
             <Box
               component="img"
               src="/logo.svg"
-              alt="ClaudeBoard"
+              alt="Claude Panel"
               sx={{ width: 18, height: 18 }}
             />
           </Box>
@@ -134,7 +134,7 @@ export default function App() {
                   lineHeight: 1.3,
                 }}
               >
-                ClaudeBoard
+                Claude Panel
               </Typography>
               <Typography
                 variant="caption"
