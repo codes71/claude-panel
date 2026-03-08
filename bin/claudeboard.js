@@ -143,9 +143,9 @@ function openBrowser(url) {
   const platform = process.platform;
   if (platform === "darwin") {
     spawn("open", [url], { detached: true, stdio: "ignore" }).unref();
-    return;
-  }
-  if (platform === "linux") {
+  } else if (platform === "win32") {
+    spawn("cmd", ["/c", "start", "", url], { detached: true, stdio: "ignore" }).unref();
+  } else {
     spawn("xdg-open", [url], { detached: true, stdio: "ignore" }).unref();
   }
 }
@@ -157,8 +157,8 @@ async function main() {
     return;
   }
 
-  if (process.platform !== "linux" && process.platform !== "darwin") {
-    throw new Error("claude-panel currently supports Linux and macOS only.");
+  if (process.platform !== "linux" && process.platform !== "darwin" && process.platform !== "win32") {
+    throw new Error("claude-panel supports Linux, macOS, and Windows only.");
   }
 
   if (!existsSync(staticDir)) {

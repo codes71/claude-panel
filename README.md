@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/claude-panel"><img src="https://img.shields.io/npm/v/claude-panel.svg" alt="npm version" /></a>
   <a href="https://github.com/codes71/claude-panel/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/claude-panel.svg" alt="license" /></a>
-  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos-blue" alt="platform" />
+  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-blue" alt="platform" />
   <a href="https://github.com/codes71/claude-panel"><img src="https://img.shields.io/github/stars/codes71/claude-panel.svg?style=social" alt="GitHub stars" /></a>
 </p>
 
@@ -42,7 +42,7 @@ Manage configuration, plugins, commands, MCP servers, skill providers, and multi
 |----------|--------|
 | Linux    | Supported |
 | macOS    | Supported |
-| Windows  | Not yet supported (WSL may work but is untested) |
+| Windows  | Supported |
 
 ## Prerequisites
 

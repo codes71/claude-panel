@@ -6,6 +6,7 @@ directories, allowing CCM to manage several Claude Code profiles.
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -27,7 +28,14 @@ _WEAK_MARKERS = {"settings.json", "commands"}
 _DEFAULT_INSTANCE = Path.home() / ".claude"
 
 # Persistence file for registered instances and active selection
-_PERSISTENCE_PATH = Path.home() / ".config" / "ccm" / "instances.json"
+def _get_persistence_path() -> Path:
+    if os.name == "nt":
+        base = Path(os.environ.get("APPDATA", str(Path.home())))
+    else:
+        base = Path.home() / ".config"
+    return base / "ccm" / "instances.json"
+
+_PERSISTENCE_PATH = _get_persistence_path()
 
 
 def _read_json(path: Path) -> dict | None:

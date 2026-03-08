@@ -78,7 +78,9 @@ def _resolve_command_path(namespace: str, name: str) -> Path:
     resolved = file_path.resolve()
     cmds_resolved = cmds.resolve()
 
-    if not str(resolved).startswith(str(cmds_resolved) + "/") and resolved != cmds_resolved:
+    try:
+        resolved.relative_to(cmds_resolved)
+    except ValueError:
         raise ValueError(f"Invalid path: escapes commands directory")
 
     return resolved
