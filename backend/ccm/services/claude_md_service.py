@@ -127,11 +127,28 @@ def list_claude_md_files() -> dict:
 
 
 def _build_tree(files: list[dict]) -> list[dict]:
-    """Build a nested tree structure from flat file list."""
+    """Build a nested tree structure from flat file list.
+
+    Global-scoped files appear as top-level leaf nodes (no wrapping folder).
+    Project-scoped files are nested under their directory hierarchy.
+    """
     home = Path.home()
+    top_level: list[dict] = []
     tree: dict = {}
 
     for f in files:
+        # Global files go directly to top level, no folder wrapper
+        if f["scope"] == "global":
+            top_level.append({
+                "name": "CLAUDE.md",
+                "path": f["path"],
+                "scope": f["scope"],
+                "token_estimate": f["token_estimate"],
+                "size_bytes": f["size_bytes"],
+                "children": [],
+            })
+            continue
+
         file_path = Path(f["path"])
         try:
             rel = file_path.relative_to(home)
@@ -179,7 +196,7 @@ def _build_tree(files: list[dict]) -> list[dict]:
                 })
         return nodes
 
-    return dict_to_nodes(tree)
+    return top_level + dict_to_nodes(tree)
 
 
 def read_claude_md(file_path: str) -> dict:
