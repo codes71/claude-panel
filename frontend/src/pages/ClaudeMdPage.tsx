@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FolderIcon from "@mui/icons-material/Folder";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
@@ -29,7 +30,7 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import SearchIcon from "@mui/icons-material/Search";
-import { useClaudeMdFiles, useClaudeMdFile, useUpdateClaudeMd, useCreateClaudeMd } from "../api/claudeMd";
+import { useClaudeMdFiles, useClaudeMdFile, useUpdateClaudeMd, useCreateClaudeMd, useDeleteClaudeMd } from "../api/claudeMd";
 import CodeEditor from "../components/CodeEditor";
 import type { ClaudeMdTreeNode } from "../types";
 
@@ -198,10 +199,12 @@ export default function ClaudeMdPage() {
   const tree = mdData?.tree ?? [];
   const updateMd = useUpdateClaudeMd();
   const createMd = useCreateClaudeMd();
+  const deleteMd = useDeleteClaudeMd();
 
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [newPath, setNewPath] = useState("");
   const [filter, setFilter] = useState("");
   const [toast, setToast] = useState<{ msg: string; severity: "success" | "error" } | null>(null);
@@ -281,6 +284,19 @@ export default function ClaudeMdPage() {
         onError: (e) => setToast({ msg: (e as Error).message, severity: "error" }),
       },
     );
+  };
+
+  const handleDelete = () => {
+    if (!selectedPath) return;
+    deleteMd.mutate(selectedPath, {
+      onSuccess: () => {
+        setToast({ msg: "File deleted", severity: "success" });
+        setDeleteOpen(false);
+        setSelectedPath(null);
+        setContent("");
+      },
+      onError: (e) => setToast({ msg: (e as Error).message, severity: "error" }),
+    });
   };
 
   const tokenEstimate = fileDetail?.token_estimate ?? Math.ceil(content.length / 4);
@@ -406,6 +422,17 @@ export default function ClaudeMdPage() {
                   onSave={handleSave}
                   saving={updateMd.isPending}
                   tokenEstimate={tokenEstimate}
+                  extraToolbar={
+                    <Button
+                      size="small"
+                      color="error"
+                      variant="outlined"
+                      startIcon={<DeleteIcon />}
+                      onClick={() => setDeleteOpen(true)}
+                    >
+                      Delete
+                    </Button>
+                  }
                 />
               </>
             )}
@@ -436,6 +463,30 @@ export default function ClaudeMdPage() {
             disabled={!newPath.trim() || createMd.isPending}
           >
             Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete CLAUDE.md</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete this file? A backup will be created.
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mt: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", wordBreak: "break-all" }}
+          >
+            {selectedPath}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDeleteOpen(false)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} variant="contained" color="error" disabled={deleteMd.isPending}>
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

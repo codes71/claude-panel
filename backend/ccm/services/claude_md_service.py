@@ -219,7 +219,7 @@ def write_claude_md(file_path: str, content: str) -> dict:
 
 def create_claude_md(file_path: str, content: str = "") -> dict:
     """Create a new CLAUDE.md file."""
-    path = Path(file_path)
+    path = Path(file_path).expanduser().resolve()
 
     if path.name != "CLAUDE.md":
         raise ValueError("File must be named CLAUDE.md")
@@ -235,3 +235,20 @@ def create_claude_md(file_path: str, content: str = "") -> dict:
         "token_estimate": estimate_file_tokens(stat.st_size),
         "last_modified": stat.st_mtime,
     }
+
+
+def delete_claude_md(file_path: str) -> dict:
+    """Delete a CLAUDE.md file (with backup)."""
+    path = Path(file_path)
+
+    if path.name != "CLAUDE.md":
+        raise ValueError("Can only delete files named CLAUDE.md")
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    # Back up before deleting
+    from ccm.services.backup import backup_file
+    backup_file(path)
+
+    path.unlink()
+    return {"deleted": str(path)}

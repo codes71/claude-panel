@@ -43,3 +43,13 @@ async def create_claude_md(body: ClaudeMdWriteBody):
         return claude_md_service.create_claude_md(body.path, body.content)
     except (FileExistsError, ValueError) as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/claude-md")
+async def delete_claude_md(path: str = Query(...)):
+    try:
+        return claude_md_service.delete_claude_md(path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

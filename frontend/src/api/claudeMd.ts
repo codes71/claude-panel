@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { get, put, post } from "./client";
+import { get, put, post, del } from "./client";
 import type {
   ClaudeMdListResponse,
   ClaudeMdFileContent,
@@ -40,6 +40,18 @@ export function useCreateClaudeMd() {
   return useMutation({
     mutationFn: (data: ClaudeMdCreateRequest) =>
       post<ClaudeMdFileContent>("/claude-md", data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["claude-md"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
+export function useDeleteClaudeMd() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (path: string) =>
+      del<{ deleted: string }>(`/claude-md?path=${encodeURIComponent(path)}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["claude-md"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
