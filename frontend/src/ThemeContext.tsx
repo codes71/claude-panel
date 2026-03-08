@@ -12,7 +12,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue>({ mode: "dark", toggle: () => {} });
 
-const STORAGE_KEY = "claudeboard-theme";
+const STORAGE_KEY = "claude-panel-theme";
 
 function readStoredMode(): ThemeMode {
   try {

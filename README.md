@@ -1,18 +1,18 @@
 <p align="center">
-  <img src="frontend/public/logo.svg" alt="ClaudeBoard" width="120" height="120" />
+  <img src="frontend/public/logo.svg" alt="Claude Panel" width="120" height="120" />
 </p>
 
-<h1 align="center">ClaudeBoard</h1>
+<h1 align="center">Claude Panel</h1>
 
 <p align="center">
   Local dashboard and control panel for Claude Code
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/claudeboard"><img src="https://img.shields.io/npm/v/claudeboard.svg" alt="npm version" /></a>
-  <a href="https://github.com/codes71/claudeboard/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/claudeboard.svg" alt="license" /></a>
+  <a href="https://www.npmjs.com/package/claude-panel"><img src="https://img.shields.io/npm/v/claude-panel.svg" alt="npm version" /></a>
+  <a href="https://github.com/codes71/claude-panel/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/claude-panel.svg" alt="license" /></a>
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos-blue" alt="platform" />
-  <a href="https://github.com/codes71/claudeboard"><img src="https://img.shields.io/github/stars/codes71/claudeboard.svg?style=social" alt="GitHub stars" /></a>
+  <a href="https://github.com/codes71/claude-panel"><img src="https://img.shields.io/github/stars/codes71/claude-panel.svg?style=social" alt="GitHub stars" /></a>
 </p>
 
 ---
@@ -53,22 +53,22 @@ Manage configuration, plugins, commands, MCP servers, skill providers, and multi
 ## Install
 
 ```bash
-npm install -g claudeboard
+npm install -g claude-panel
 ```
 
 Or run without installing globally:
 
 ```bash
-npx claudeboard
+npx claude-panel
 ```
 
 ## Usage
 
 ```bash
-claudeboard
+claude-panel
 ```
 
-By default, ClaudeBoard tries port `8787`. If that port is busy, it automatically selects a free port and prints the URL.
+By default, Claude Panel tries port `8787`. If that port is busy, it automatically selects a free port and prints the URL.
 
 ### CLI Options
 
@@ -94,7 +94,7 @@ Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 Ensure `python3` (or `python`) 3.12+ is installed and on your PATH.
 
 **Port already in use**
-Either let ClaudeBoard auto-select a free port, use `--port <number>` with a different port, or set `CCM_PORT` to change the default.
+Either let Claude Panel auto-select a free port, use `--port <number>` with a different port, or set `CCM_PORT` to change the default.
 
 **First run is slow**
 On first launch, `uv` creates a Python virtual environment and installs backend dependencies. Subsequent starts are fast.
@@ -131,4 +131,4 @@ The `prepack` lifecycle script automatically runs `npm ci` in the frontend direc
 
 ## Disclaimer
 
-ClaudeBoard is an independent open-source project and is not affiliated with, endorsed by, or officially connected to Anthropic, PBC. "Claude" is a trademark of Anthropic.
+Claude Panel is an independent open-source project and is not affiliated with, endorsed by, or officially connected to Anthropic, PBC. "Claude" is a trademark of Anthropic.

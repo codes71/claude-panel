@@ -22,7 +22,7 @@ const RESET = "\x1b[0m";
 
 function printBanner() {
   console.log(
-    `\n${PURPLE}${BOLD}  ClaudeBoard${RESET} ${DIM}v${pkg.version}${RESET}` +
+    `\n${PURPLE}${BOLD}  Claude Panel${RESET} ${DIM}v${pkg.version}${RESET}` +
     `\n${CYAN}  Claude Code Control Panel${RESET}` +
     `\n${DIM}  ${pkg.homepage}${RESET}\n`
   );
@@ -31,7 +31,7 @@ function printBanner() {
 function printHelp() {
   printBanner();
   console.log(`Usage:
-  claudeboard [--port <number>] [--no-open]
+  claude-panel [--port <number>] [--no-open]
 
 Options:
   --port <number>  Use a specific port (skips auto fallback)
@@ -158,7 +158,7 @@ async function main() {
   }
 
   if (process.platform !== "linux" && process.platform !== "darwin") {
-    throw new Error("claudeboard currently supports Linux and macOS only.");
+    throw new Error("claude-panel currently supports Linux and macOS only.");
   }
 
   if (!existsSync(staticDir)) {

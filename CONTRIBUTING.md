@@ -1,4 +1,4 @@
-# Contributing to ClaudeBoard
+# Contributing to Claude Panel
 
 Thanks for your interest in contributing! This guide covers development setup, workflow, and conventions.
 
@@ -13,8 +13,8 @@ Thanks for your interest in contributing! This guide covers development setup, w
 
 ```bash
 # Clone the repository
-git clone https://github.com/codes71/claudeboard.git
-cd claudeboard
+git clone https://github.com/codes71/claude-panel.git
+cd claude-panel
 
 # Install frontend dependencies
 npm --prefix frontend install
@@ -37,7 +37,7 @@ This starts the FastAPI backend on port 8000 and the Vite dev server on port 517
 ## Project Structure
 
 ```
-claudeboard/
+claude-panel/
   backend/
     ccm/
       config.py          # App configuration (pydantic-settings)
@@ -52,7 +52,7 @@ claudeboard/
       pages/             # Page-level components
       types.ts           # Shared TypeScript types
   bin/
-    claudeboard.js       # CLI entrypoint
+    claude-panel.js       # CLI entrypoint
   scripts/
     build-frontend.mjs   # Frontend build helper
     build.sh             # Shell build shortcut
@@ -85,8 +85,8 @@ claudeboard/
 
 ## Reporting Issues
 
-Use [GitHub Issues](https://github.com/codes71/claudeboard/issues) for bug reports and feature requests. Please include:
-- ClaudeBoard version (`claudeboard --help` shows version)
+Use [GitHub Issues](https://github.com/codes71/claude-panel/issues) for bug reports and feature requests. Please include:
+- Claude Panel version (`claude-panel --help` shows version)
 - OS and Node/Python versions
 - Steps to reproduce (for bugs)
 
