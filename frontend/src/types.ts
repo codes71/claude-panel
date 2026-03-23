@@ -449,6 +449,150 @@ export interface CatalogPageResponse {
   total_pages: number;
 }
 
+// ---- Agents ----
+export interface AgentInfo {
+  name: string;
+  display_name: string;
+  file_path: string;
+  size_bytes: number;
+  token_estimate: number;
+  description: string;
+  color: string;
+  emoji: string;
+  vibe: string;
+  model: string;
+}
+
+export interface AgentDetail extends AgentInfo {
+  content: string;
+}
+
+export interface AgentListResponse {
+  agents: AgentInfo[];
+  total_count: number;
+  total_tokens: number;
+}
+
+export interface AgentCreateRequest {
+  name: string;
+  content: string;
+}
+
+export interface AgentUpdateRequest {
+  content: string;
+}
+
+export interface AgentRenameRequest {
+  new_name: string;
+}
+
+export interface BrowseEntry {
+  name: string;
+  path: string;
+  is_dir: boolean;
+  md_count: number;
+}
+
+export interface BrowseResponse {
+  path: string;
+  parent: string | null;
+  entries: BrowseEntry[];
+}
+
+export interface AgentScanRequest {
+  folder_path: string;
+}
+
+export interface AgentScanResponse {
+  folder_path: string;
+  agents: AgentInfo[];
+  total_count: number;
+}
+
+export interface AgentImportRequest {
+  folder_path: string;
+  names: string[];
+  overwrite: boolean;
+}
+
+export interface AgentImportResponse {
+  imported: string[];
+  skipped: string[];
+  failed: { name: string; reason: string }[];
+  imported_count: number;
+  skipped_count: number;
+  failed_count: number;
+}
+
+// ---- Transfers ----
+export interface TransferCommandRef {
+  namespace: string;
+  name: string;
+}
+
+export interface TransferPluginRef {
+  plugin_id: string;
+}
+
+export interface TransferMcpRef {
+  name: string;
+}
+
+export interface TransferAgentRef {
+  name: string;
+}
+
+export interface TransferPreviewRequest {
+  source_path: string;
+  target_path: string;
+  commands: TransferCommandRef[];
+  plugins: TransferPluginRef[];
+  mcp_servers: TransferMcpRef[];
+  agents: TransferAgentRef[];
+}
+
+export interface TransferApplyRequest extends TransferPreviewRequest {
+  conflict_mode: "skip" | "overwrite";
+}
+
+export interface TransferItemStatus {
+  name: string;
+  status: "new" | "noop" | "conflict";
+  details?: string;
+}
+
+export interface TransferCategorySummary {
+  selected: number;
+  new_count: number;
+  conflicts: number;
+  noops: number;
+}
+
+export interface TransferPreviewResponse {
+  summary: {
+    commands: TransferCategorySummary;
+    plugins: TransferCategorySummary;
+    mcp_servers: TransferCategorySummary;
+    agents: TransferCategorySummary;
+  };
+  commands: TransferItemStatus[];
+  plugins: TransferItemStatus[];
+  mcp_servers: TransferItemStatus[];
+  agents: TransferItemStatus[];
+}
+
+export interface TransferApplyResponse {
+  applied: number;
+  skipped: number;
+  failed: number;
+  results: {
+    commands: TransferItemStatus[];
+    plugins: TransferItemStatus[];
+    mcp_servers: TransferItemStatus[];
+    agents: TransferItemStatus[];
+  };
+}
+
 // ---- Instances ----
 export interface InstanceInfo {
   id: string;

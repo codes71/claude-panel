@@ -156,8 +156,9 @@ def scan_instances() -> list[dict[str, Any]]:
 def switch_instance(path: str) -> dict[str, Any]:
     """Switch the active Claude config instance by mutating settings in-place.
 
-    Updates claude_home, claude_json_path, backup_dir, and
-    skill_providers_dir to point at the target instance.
+    Updates claude_home, claude_json_path, and backup_dir to point at the
+    target instance.  skill_providers_dir is intentionally left unchanged
+    because providers are shared globally.
     """
     target = Path(path).resolve()
     if not target.is_dir():
@@ -167,7 +168,8 @@ def switch_instance(path: str) -> dict[str, Any]:
     settings.claude_home = target
     settings.claude_json_path = _find_claude_json_for(target)
     settings.backup_dir = target / "backups" / "claude-panel"
-    settings.skill_providers_dir = target / "claude-panel" / "skill-providers"
+    # NOTE: skill_providers_dir is intentionally NOT mutated here.
+    # Skill providers are shared across all instances (global registry).
 
     # Persist the active selection
     persisted = _read_persistence()

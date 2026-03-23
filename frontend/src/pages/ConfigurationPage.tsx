@@ -4,8 +4,9 @@ import { Link as RouterLink } from "react-router-dom";
 import SettingsPage from "./SettingsPage";
 import McpServersPage from "./McpServersPage";
 import CommandsPage from "./CommandsPage";
+import InstallationsPage from "./InstallationsPage";
 
-const TABS = ["Settings", "MCP Servers", "Commands"] as const;
+const TABS = ["Settings", "MCP Servers", "Commands", "Installations"] as const;
 
 export default function ConfigurationPage() {
   const [tab, setTab] = useState(0);
@@ -38,6 +39,7 @@ export default function ConfigurationPage() {
         {tab === 0 && <SettingsPage />}
         {tab === 1 && <McpServersPage />}
         {tab === 2 && <CommandsPage />}
+        {tab === 3 && <InstallationsPage />}
       </Box>
     </Box>
   );

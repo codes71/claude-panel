@@ -1,6 +1,7 @@
 """Skill provider management — add, remove, update repos; discover and install skills/commands."""
 
 import json
+import logging
 import re
 import shutil
 import subprocess
@@ -12,13 +13,44 @@ from claude_panel.services.backup import backup_file, safe_write_json
 from claude_panel.services.token_estimator import estimate_file_tokens
 from claude_panel.services import provider_provenance_service, skill_index_service
 
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# One-time migration flag (per-process)
+# ---------------------------------------------------------------------------
+_migrated = False
+
 
 # ---------------------------------------------------------------------------
 # Path helpers
 # ---------------------------------------------------------------------------
 
+def _migrate_legacy_providers_dir() -> None:
+    """Migrate provider data from the legacy per-instance path to the global path.
+
+    Old location: ``~/.claude/claude-panel/skill-providers/``
+    New location: ``~/.config/claude-panel/skill-providers/``
+
+    The migration only runs once per process and only when the new directory
+    does not yet exist but the old one does.
+    """
+    global _migrated
+    if _migrated:
+        return
+    _migrated = True
+
+    old_dir = Path.home() / ".claude" / "claude-panel" / "skill-providers"
+    new_dir = settings.skill_providers_dir
+
+    if old_dir.exists() and not new_dir.exists():
+        new_dir.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(old_dir, new_dir)
+        logger.info("Migrated skill providers from %s to %s", old_dir, new_dir)
+
+
 def _providers_dir() -> Path:
     """Get skill-providers base directory, creating if needed."""
+    _migrate_legacy_providers_dir()
     d = settings.skill_providers_dir
     d.mkdir(parents=True, exist_ok=True)
     return d
@@ -596,7 +628,7 @@ def install_skill(item_id: str, scope: str = "personal") -> dict:
     if is_skill:
         skill_name = source_path.name
         if scope == "personal":
-            target_path = Path.home() / ".claude" / "skills" / skill_name
+            target_path = settings.claude_home / "skills" / skill_name
         else:
             target_path = Path.cwd() / ".claude" / "skills" / skill_name
 
@@ -608,7 +640,7 @@ def install_skill(item_id: str, scope: str = "personal") -> dict:
     else:
         cmd_name = source_path.name
         if scope == "personal":
-            target_path = Path.home() / ".claude" / "commands" / cmd_name
+            target_path = settings.claude_home / "commands" / cmd_name
         else:
             target_path = Path.cwd() / ".claude" / "commands" / cmd_name
 

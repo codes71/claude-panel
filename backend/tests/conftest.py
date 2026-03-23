@@ -27,6 +27,7 @@ def tmp_claude_home(tmp_path):
     (claude_home / "plugins").mkdir()
     (claude_home / "plugins" / "cache").mkdir()
     (claude_home / "commands").mkdir()
+    (claude_home / "agents").mkdir()
     (claude_home / "projects").mkdir()
     (claude_home / "backups" / "claude-panel").mkdir(parents=True)
 
@@ -56,16 +57,20 @@ def tmp_claude_json(tmp_path):
 def mock_settings(tmp_claude_home, tmp_claude_json, monkeypatch):
     """Patch the global settings singleton to use temporary directories."""
     from claude_panel.config import settings
-    from claude_panel.services import instance_service
+    from claude_panel.services import instance_service, skill_provider_service
 
+    # skill_providers_dir mirrors the new global location (~/.config/claude-panel/...)
+    global_config = tmp_claude_home.parent / ".config" / "claude-panel"
     monkeypatch.setattr(settings, "claude_home", tmp_claude_home)
     monkeypatch.setattr(settings, "claude_json_path", tmp_claude_json)
     monkeypatch.setattr(settings, "backup_dir", tmp_claude_home / "backups" / "claude-panel")
-    monkeypatch.setattr(settings, "skill_providers_dir", tmp_claude_home / "claude-panel" / "skill-providers")
+    monkeypatch.setattr(settings, "skill_providers_dir", global_config / "skill-providers")
     monkeypatch.setattr(
         instance_service,
         "_PERSISTENCE_PATH",
-        tmp_claude_home.parent / ".config" / "claude-panel" / "instances.json",
+        global_config / "instances.json",
     )
+    # Reset the per-process migration flag so each test starts fresh
+    monkeypatch.setattr(skill_provider_service, "_migrated", False)
 
     return settings

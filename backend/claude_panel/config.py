@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     claude_home: Path = Path.home() / ".claude"
     claude_json_path: Path = Path.home() / ".claude.json"
     backup_dir: Path = Path.home() / ".claude" / "backups" / "claude-panel"
-    skill_providers_dir: Path = Path.home() / ".claude" / "claude-panel" / "skill-providers"
+    skill_providers_dir: Path = Path.home() / ".config" / "claude-panel" / "skill-providers"
     scan_roots: list[Path] = []
     host: str = "127.0.0.1"
     port: int = 8000

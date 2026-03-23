@@ -1,15 +1,15 @@
 """Custom slash command management — list, read, create, update, delete."""
 
-import re
 from pathlib import Path
-
-import yaml
-
-VALID_NAME_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 
 from claude_panel.config import settings
 from claude_panel.services.backup import backup_file, safe_write_text
+from claude_panel.services.frontmatter import VALID_NAME_RE, parse_frontmatter, validate_name
 from claude_panel.services.token_estimator import estimate_file_tokens
+
+# Keep module-level aliases so existing references (e.g. tests) still work
+_parse_frontmatter = parse_frontmatter
+_validate_name = validate_name
 
 
 def _commands_dir() -> Path:
@@ -17,45 +17,6 @@ def _commands_dir() -> Path:
     d = settings.claude_home / "commands"
     d.mkdir(parents=True, exist_ok=True)
     return d
-
-
-def _parse_frontmatter(text: str) -> dict:
-    """Extract YAML frontmatter from markdown text.
-
-    Looks for content between opening and closing ``---`` markers
-    at the start of the file. Returns a dict with parsed keys
-    (typically 'description', 'category', etc.) or an empty dict
-    if no valid frontmatter is found.
-    """
-    text = text.strip()
-    if not text.startswith("---"):
-        return {}
-
-    # Find the closing --- marker (skip the opening one)
-    end_idx = text.find("---", 3)
-    if end_idx == -1:
-        return {}
-
-    frontmatter_text = text[3:end_idx].strip()
-    if not frontmatter_text:
-        return {}
-
-    try:
-        parsed = yaml.safe_load(frontmatter_text)
-        if isinstance(parsed, dict):
-            return parsed
-    except yaml.YAMLError:
-        pass
-
-    return {}
-
-
-def _validate_name(name: str) -> None:
-    """Validate a command or namespace name segment."""
-    if not VALID_NAME_RE.match(name):
-        raise ValueError(
-            f"Invalid name '{name}': only letters, numbers, hyphens, and underscores are allowed"
-        )
 
 
 def _resolve_command_path(namespace: str, name: str) -> Path:

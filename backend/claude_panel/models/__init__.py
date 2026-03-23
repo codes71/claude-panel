@@ -36,6 +36,20 @@ from claude_panel.models.settings import (
     SettingsUpdateRequest,
     StatusLineConfig,
 )
+from claude_panel.models.transfers import (
+    TransferAgentRef,
+    TransferApplyRequest,
+    TransferApplyResponse,
+    TransferApplySummary,
+    TransferCommandRef,
+    TransferItemPreview,
+    TransferItemResult,
+    TransferMcpRef,
+    TransferPluginRef,
+    TransferPreviewRequest,
+    TransferPreviewResponse,
+    TransferPreviewSummary,
+)
 from claude_panel.models.visibility import (
     AgentInfo,
     CommandInfo,
@@ -82,6 +96,19 @@ __all__ = [
     "HookConfig",
     "MemoryFile",
     "VisibilityResponse",
+    # transfers
+    "TransferAgentRef",
+    "TransferApplyRequest",
+    "TransferApplyResponse",
+    "TransferApplySummary",
+    "TransferCommandRef",
+    "TransferItemPreview",
+    "TransferItemResult",
+    "TransferMcpRef",
+    "TransferPluginRef",
+    "TransferPreviewRequest",
+    "TransferPreviewResponse",
+    "TransferPreviewSummary",
     # dashboard
     "DashboardResponse",
     "OptimizationSuggestion",

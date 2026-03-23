@@ -36,6 +36,7 @@ import {
   useInstallSkill,
   useUninstallSkill,
 } from "../../api/skillProviders";
+import { useActiveInstance } from "../../api/instances";
 import type { CatalogItem, SkillProviderInfo } from "../../types";
 
 interface CatalogGridProps {
@@ -46,6 +47,7 @@ interface CatalogGridProps {
 export default function CatalogGrid({ providers, toast }: CatalogGridProps) {
   const installSkill = useInstallSkill();
   const uninstallSkill = useUninstallSkill();
+  const { data: activeInstance } = useActiveInstance();
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "skills" | "commands">("all");
@@ -299,7 +301,7 @@ export default function CatalogGrid({ providers, toast }: CatalogGridProps) {
             <FormControlLabel
               value="personal"
               control={<Radio />}
-              label="Personal (~/.claude/)"
+              label={`Personal (${activeInstance?.path ?? "~/.claude"}/)`}
             />
             <FormControlLabel
               value="project"

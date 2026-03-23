@@ -155,6 +155,107 @@ class TestSkillProviderEndpoints:
         assert "providers" in data
 
 
+class TestTransferEndpoints:
+    def test_preview_transfer_empty(self, client, mock_settings, tmp_path):
+        source = tmp_path / ".claude-a"
+        target = tmp_path / ".claude-b"
+        source.mkdir()
+        target.mkdir()
+
+        response = client.post("/api/instances/transfers/preview", json={
+            "source_path": str(source),
+            "target_path": str(target),
+            "commands": [],
+            "plugins": [],
+            "mcp_servers": [],
+            "agents": [],
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert "summary" in data
+        assert data["summary"]["commands"]["selected"] == 0
+
+    def test_preview_transfer_with_commands(self, client, mock_settings, tmp_path):
+        source = tmp_path / ".claude-a"
+        target = tmp_path / ".claude-b"
+        source.mkdir()
+        target.mkdir()
+        (source / "commands").mkdir()
+        (source / "commands" / "hello.md").write_text("content", encoding="utf-8")
+
+        response = client.post("/api/instances/transfers/preview", json={
+            "source_path": str(source),
+            "target_path": str(target),
+            "commands": [{"namespace": "", "name": "hello"}],
+            "plugins": [],
+            "mcp_servers": [],
+            "agents": [],
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["summary"]["commands"]["new"] == 1
+
+    def test_apply_transfer_rejects_same_instance(self, client, mock_settings, tmp_path):
+        inst = tmp_path / ".claude-a"
+        inst.mkdir()
+
+        response = client.post("/api/instances/transfers/apply", json={
+            "source_path": str(inst),
+            "target_path": str(inst),
+            "commands": [],
+            "plugins": [],
+            "mcp_servers": [],
+            "agents": [],
+            "conflict_mode": "skip",
+        })
+        assert response.status_code == 400
+
+    def test_apply_transfer_copies_command(self, client, mock_settings, tmp_path):
+        source = tmp_path / ".claude-a"
+        target = tmp_path / ".claude-b"
+        source.mkdir()
+        target.mkdir()
+        (source / "commands").mkdir()
+        (target / "commands").mkdir()
+        (source / "commands" / "greet.md").write_text("hi", encoding="utf-8")
+
+        response = client.post("/api/instances/transfers/apply", json={
+            "source_path": str(source),
+            "target_path": str(target),
+            "commands": [{"namespace": "", "name": "greet"}],
+            "plugins": [],
+            "mcp_servers": [],
+            "agents": [],
+            "conflict_mode": "skip",
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["commands"][0]["action"] == "copied"
+        assert (target / "commands" / "greet.md").read_text(encoding="utf-8") == "hi"
+
+    def test_apply_transfer_with_agents(self, client, mock_settings, tmp_path):
+        source = tmp_path / ".claude-a"
+        target = tmp_path / ".claude-b"
+        source.mkdir()
+        target.mkdir()
+        (source / "agents").mkdir()
+        (target / "agents").mkdir()
+        (source / "agents" / "helper.md").write_text("agent content", encoding="utf-8")
+
+        response = client.post("/api/instances/transfers/apply", json={
+            "source_path": str(source),
+            "target_path": str(target),
+            "commands": [],
+            "plugins": [],
+            "mcp_servers": [],
+            "agents": [{"name": "helper"}],
+            "conflict_mode": "skip",
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["agents"][0]["action"] == "copied"
+
+
 class TestConfigBundleEndpoints:
     def test_export_config_bundle(self, client):
         response = client.get("/api/config-bundle/export")

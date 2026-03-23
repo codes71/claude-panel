@@ -19,6 +19,7 @@ from claude_panel.routers import (
     ccr,
     marketplace,
     commands,
+    agents,
     skill_providers,
     instances,
     config_bundle,
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(ccr.router, prefix="/api")
     app.include_router(marketplace.router, prefix="/api")
     app.include_router(commands.router, prefix="/api")
+    app.include_router(agents.router, prefix="/api")
     app.include_router(skill_providers.router, prefix="/api")
     app.include_router(instances.router, prefix="/api")
     app.include_router(config_bundle.router, prefix="/api")

@@ -2,6 +2,12 @@
 
 All notable changes to Claude Panel are documented in this file.
 
+## [2.1.1] - 2026-03-15
+
+### Bug Fixes
+- Fix skill installation ignoring active instance — personal scope now installs to the active instance's directory (`settings.claude_home`) instead of always `~/.claude/`
+- Make skill providers global across all instances — provider registry moved to `~/.config/claude-panel/skill-providers/` so providers only need to be added once and are available to every instance
+
 ## [2.1.0] - 2026-03-06
 
 ### Reliability Control Plane

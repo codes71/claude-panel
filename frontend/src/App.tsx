@@ -16,6 +16,7 @@ import ExtensionIcon from "@mui/icons-material/Extension";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DescriptionIcon from "@mui/icons-material/Description";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -39,6 +40,7 @@ import SkillCatalogPage from "./pages/SkillCatalogPage";
 import ExtensionsPage from "./pages/ExtensionsPage";
 import ConfigurationPage from "./pages/ConfigurationPage";
 import ReliabilityPage from "./pages/ReliabilityPage";
+import AgentsPage from "./pages/AgentsPage";
 
 const SIDEBAR_EXPANDED = 240;
 const SIDEBAR_COLLAPSED = 64;
@@ -48,6 +50,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", path: "/", icon: <DashboardIcon /> },
   { label: "Extensions", path: "/extensions", icon: <ExtensionIcon /> },
   { label: "Configuration", path: "/configuration", icon: <SettingsIcon /> },
+  { label: "Agents", path: "/agents", icon: <SmartToyIcon /> },
   { label: "Reliability", path: "/reliability", icon: <HealthAndSafetyIcon /> },
   { label: "CLAUDE.md", path: "/claude-md", icon: <DescriptionIcon /> },
 ];
@@ -247,6 +250,7 @@ export default function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/extensions" element={<ExtensionsPage />} />
               <Route path="/configuration" element={<ConfigurationPage />} />
+              <Route path="/agents" element={<AgentsPage />} />
               <Route path="/reliability" element={<ReliabilityPage />} />
               <Route path="/claude-md" element={<ClaudeMdPage />} />
               {/* Legacy routes redirect to new consolidated pages */}
