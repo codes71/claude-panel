@@ -23,6 +23,7 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 import { useThemeMode } from "./ThemeContext";
+import { useHealth } from "./api/health";
 import InstanceSwitcher from "./components/InstanceSwitcher";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -62,6 +63,7 @@ export default function App() {
   const { mode, toggle: toggleTheme } = useThemeMode();
   const theme = useTheme();
   const location = useLocation();
+  const { data: health } = useHealth();
 
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
@@ -200,7 +202,7 @@ export default function App() {
           {!collapsed && (
             <>
               <Typography variant="caption" sx={{ color: "text.secondary", display: "block", textTransform: "none", letterSpacing: "normal", fontSize: "0.65rem" }}>
-                v2.0.0
+                {health?.version ? `v${health.version}` : ""}
               </Typography>
               <Typography variant="caption" sx={{ color: "text.secondary", display: "block", textTransform: "none", letterSpacing: "normal", fontSize: "0.6rem", mt: 0.25 }}>
                 Created by Thura
