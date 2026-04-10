@@ -9,7 +9,7 @@ class HealthCheck(BaseModel):
     """API health check response."""
 
     status: str = "ok"
-    version: str = "1.0.0"
+    version: str = "2.2.0"
     claude_home: str
 
 

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from claude_panel.config import settings
+from claude_panel.models.settings import SettingsUpdateRequest
 from claude_panel.services.backup import safe_write_json
 
 
@@ -33,6 +34,43 @@ def update_settings(updates: dict) -> dict:
     current.update(updates)
     safe_write_json(_settings_path(), current)
     return current
+
+
+def apply_settings_patch(req: SettingsUpdateRequest) -> dict:
+    """Apply a structured PATCH (same contract as the frontend SettingsUpdateRequest).
+
+    Unlike ``update_settings``, this correctly merges ``env`` from a list of
+    {key, value} operations instead of replacing ``env`` with that list (which
+    breaks Claude Code).
+    """
+    data = read_settings()
+    patch = req.model_dump(exclude_unset=True)
+
+    if "skipDangerousModePermissionPrompt" in patch:
+        data["skipDangerousModePermissionPrompt"] = patch["skipDangerousModePermissionPrompt"]
+
+    if "statusLine" in patch:
+        sl = patch["statusLine"]
+        data["statusLine"] = sl if sl is None else sl
+
+    if "enabledPlugins" in patch:
+        plugins = dict(data.get("enabledPlugins", {}))
+        plugins.update(patch["enabledPlugins"])
+        data["enabledPlugins"] = plugins
+
+    if "env" in patch:
+        env = dict(data.get("env", {}))
+        for item in patch["env"]:
+            key = item["key"]
+            val = item.get("value")
+            if val is None:
+                env.pop(key, None)
+            else:
+                env[key] = val
+        data["env"] = env
+
+    safe_write_json(_settings_path(), data)
+    return data
 
 
 def get_env_vars() -> dict[str, str]:

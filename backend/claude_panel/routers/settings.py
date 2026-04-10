@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from claude_panel.models.settings import EnvVarUpdate
+from claude_panel.models.settings import EnvVarUpdate, SettingsUpdateRequest
 from claude_panel.services import settings_service
 
 router = APIRouter(tags=["settings"])
@@ -18,8 +18,8 @@ async def put_settings(data: dict):
 
 
 @router.patch("/settings")
-async def patch_settings(updates: dict):
-    return settings_service.update_settings(updates)
+async def patch_settings(updates: SettingsUpdateRequest):
+    return settings_service.apply_settings_patch(updates)
 
 
 @router.get("/settings/env")

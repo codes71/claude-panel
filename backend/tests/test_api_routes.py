@@ -30,9 +30,52 @@ class TestSettingsEndpoints:
         data = response.json()
         assert "env" in data
 
-    def test_patch_settings(self, client):
-        response = client.patch("/api/settings", json={"newKey": "newVal"})
+    def test_patch_settings_env_merges_as_dict(self, client):
+        """Regression: PATCH must produce env as dict, not array."""
+        response = client.patch("/api/settings", json={
+            "env": [{"key": "PATCHED", "value": "yes"}],
+        })
         assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data["env"], dict)
+        assert data["env"]["PATCHED"] == "yes"
+        assert data["env"]["MY_VAR"] == "hello"
+
+    def test_patch_settings_plugins_merge(self, client):
+        client.patch("/api/settings", json={
+            "enabledPlugins": {"first@mp": True},
+        })
+        response = client.patch("/api/settings", json={
+            "enabledPlugins": {"second@mp": False},
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["enabledPlugins"]["first@mp"] is True
+        assert data["enabledPlugins"]["second@mp"] is False
+
+    def test_patch_settings_skip_dangerous(self, client):
+        response = client.patch("/api/settings", json={
+            "skipDangerousModePermissionPrompt": True,
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["skipDangerousModePermissionPrompt"] is True
+        assert data["env"]["MY_VAR"] == "hello"
+
+    def test_patch_settings_statusline(self, client):
+        response = client.patch("/api/settings", json={
+            "statusLine": {"type": "command", "command": "echo test"},
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["statusLine"]["command"] == "echo test"
+
+    def test_patch_settings_empty_body_is_noop(self, client):
+        before = client.get("/api/settings").json()
+        response = client.patch("/api/settings", json={})
+        assert response.status_code == 200
+        after = response.json()
+        assert after["env"] == before["env"]
 
     def test_get_env_vars(self, client):
         response = client.get("/api/settings/env")

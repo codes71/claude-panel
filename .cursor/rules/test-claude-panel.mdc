@@ -1,0 +1,98 @@
+---
+description: "Edit config in Claude Panel UI, then verify it actually changed Claude Code's settings.json on disk"
+alwaysApply: false
+---
+
+# Config Edit Round-Trip Verification
+
+When this rule is invoked, execute the following 3-step flow end-to-end.
+Do NOT skip steps. Report PASS/FAIL for every check.
+
+---
+
+## Step 1 — Ensure the app is running
+
+1. Run `curl -sS http://127.0.0.1:8787/api/health` to check if the panel is up.
+2. If the request fails (connection refused / non-200), start the app:
+   - Run `npm start` from the project root, backgrounded (`block_until_ms: 0`).
+   - Wait for the string `Uvicorn running` in the terminal output.
+3. Parse the health response JSON. Extract the `claude_home` field — this is the
+   path to the active Claude Code instance (e.g. `/home/code/.claude-t`).
+4. Store `claude_home` — you will need it for the rest of the flow.
+
+---
+
+## Step 2 — Edit config via browser UI + verify on disk
+
+### 2a. Capture baseline
+
+Read `<claude_home>/settings.json`. Record:
+- The current `env` object (all key-value pairs).
+- The values of `model`, `statusLine`, `enabledPlugins`, and
+  `skipDangerousModePermissionPrompt`.
+
+These are the **baseline** values you will verify were not corrupted after saving.
+
+### 2b. Make an edit through the panel UI
+
+Use the `cursor-ide-browser` MCP server. Execute these steps in order:
+
+1. `browser_navigate` to `http://127.0.0.1:8787/configuration`.
+2. `browser_lock` the tab (action: `lock`).
+3. `browser_snapshot` to get current element refs.
+4. The Settings tab should already be selected. If not, click it.
+5. `browser_click` the **Add** button to create a new env var row.
+6. `browser_snapshot` again to get refs for the new empty row.
+7. `browser_fill` the new key field with `_PANEL_ROUNDTRIP_TEST`.
+8. `browser_fill` the new value field with a timestamp string in the format
+   `verified-YYYY-MM-DD-HHmmss` (use the current date/time).
+9. `browser_click` the **Save*** button.
+10. `browser_snapshot` — confirm the Save button is now **disabled**
+    (this means the save succeeded and the UI acknowledged it).
+
+### 2c. Cross-verify on disk
+
+Read `<claude_home>/settings.json` again from disk. Run these checks:
+
+| # | Check | How to verify |
+|---|-------|---------------|
+| 1 | `env` is a JSON object | `isinstance(env, dict)` — must NOT be a list/array |
+| 2 | Test key exists | `env["_PANEL_ROUNDTRIP_TEST"]` equals the exact timestamp you filled in |
+| 3 | Pre-existing env keys preserved | Every key from the baseline `env` is still present with the same value |
+| 4 | `model` preserved | Same value as baseline |
+| 5 | `statusLine` preserved | Same value as baseline |
+| 6 | `enabledPlugins` preserved | Same value as baseline |
+| 7 | `skipDangerousModePermissionPrompt` preserved | Same value as baseline |
+
+Print each check with `[PASS]` or `[FAIL]`.
+
+---
+
+## Step 3 — Cleanup
+
+1. Remove `_PANEL_ROUNDTRIP_TEST` from `settings.json`:
+   ```
+   python3 -c "
+   import json; p='<claude_home>/settings.json'
+   d=json.loads(open(p).read())
+   d['env'].pop('_PANEL_ROUNDTRIP_TEST',None)
+   open(p,'w').write(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
+   print('Cleaned up _PANEL_ROUNDTRIP_TEST')
+   "
+   ```
+2. `browser_lock` with action `unlock` to release the browser tab.
+3. Print a final summary:
+   ```
+   === CONFIG ROUND-TRIP SUMMARY ===
+   [PASS/FAIL] env is dict
+   [PASS/FAIL] test key landed
+   [PASS/FAIL] existing env preserved
+   [PASS/FAIL] model preserved
+   [PASS/FAIL] statusLine preserved
+   [PASS/FAIL] enabledPlugins preserved
+   [PASS/FAIL] skipDangerousModePermissionPrompt preserved
+   OVERALL: ALL PASSED / X FAILED
+   ```
+
+If any check failed, explain what went wrong and what the expected vs actual
+values were.
