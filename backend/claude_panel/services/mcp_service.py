@@ -95,6 +95,32 @@ def create_server(name: str, config: dict, scope: str, project_path: str | None)
     return {"name": name, "status": "created"}
 
 
+def delete_server(name: str) -> dict:
+    """Delete an MCP server from any scope (global, project, or disabled sidecar)."""
+    all_servers = list_all_servers()
+    server = next((s for s in all_servers if s["name"] == name), None)
+    if not server:
+        raise KeyError(f"Server '{name}' not found")
+
+    if server.get("read_only"):
+        raise ValueError(f"Server '{name}' is read-only and cannot be deleted")
+
+    if not server["enabled"]:
+        # Remove from sidecar
+        disabled = _read_sidecar()
+        if name in disabled:
+            del disabled[name]
+            _write_sidecar(disabled)
+        return {"name": name, "status": "deleted"}
+
+    if server["scope"] == "project" and server.get("project_path"):
+        remove_project_mcp_server(server["project_path"], name)
+    else:
+        remove_mcp_server(name)
+
+    return {"name": name, "status": "deleted"}
+
+
 def list_project_paths() -> list[str]:
     """Return sorted list of known project paths from ~/.claude.json."""
     data = read_claude_json()

@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from claude_panel.services import mcp_service
-from claude_panel.services.claude_json_service import remove_mcp_server
 
 router = APIRouter(tags=["mcp"])
 
@@ -130,7 +129,8 @@ async def create_mcp_server(body: McpServerCreateBody):
 @router.delete("/mcp/{name}")
 async def delete_mcp_server(name: str):
     try:
-        remove_mcp_server(name)
-        return {"name": name, "status": "deleted"}
+        return mcp_service.delete_server(name)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
