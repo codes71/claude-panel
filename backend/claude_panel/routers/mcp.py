@@ -31,6 +31,11 @@ async def list_mcp_health():
     return mcp_service.list_health()
 
 
+@router.get("/mcp/projects")
+async def list_mcp_projects():
+    return {"projects": mcp_service.list_project_paths()}
+
+
 @router.get("/mcp/{name}/diagnose")
 async def diagnose_mcp_server(name: str):
     try:

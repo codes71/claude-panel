@@ -85,6 +85,36 @@ class TestListAllServers:
         assert disabled[0]["server_type"] == "http"
 
 
+class TestListProjectPaths:
+    def test_returns_project_paths(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({
+            "mcpServers": {},
+            "projects": {
+                "/home/user/project-a": {"allowedTools": []},
+                "/home/user/project-b": {"mcpServers": {}},
+            }
+        }))
+        paths = mcp_service.list_project_paths()
+        assert paths == ["/home/user/project-a", "/home/user/project-b"]
+
+    def test_returns_empty_when_no_projects(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({"mcpServers": {}}))
+        paths = mcp_service.list_project_paths()
+        assert paths == []
+
+    def test_returns_sorted(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({
+            "mcpServers": {},
+            "projects": {
+                "/z-project": {},
+                "/a-project": {},
+                "/m-project": {},
+            }
+        }))
+        paths = mcp_service.list_project_paths()
+        assert paths == ["/a-project", "/m-project", "/z-project"]
+
+
 class TestToggleServer:
     def test_disable_server(self, mock_settings):
         result = mcp_service.toggle_server("test-server", False)

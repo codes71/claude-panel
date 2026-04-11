@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from claude_panel.config import settings
-from claude_panel.services.claude_json_service import get_mcp_servers, list_mcp_server_entries, set_mcp_servers
+from claude_panel.services.claude_json_service import get_mcp_servers, list_mcp_server_entries, read_claude_json, set_mcp_servers
 from claude_panel.services.mcp_diagnostics_service import diagnose_server as diagnose_server_config
 from claude_panel.services import mcp_health_service
 from claude_panel.services.plugin_service import list_plugin_mcp_entries
@@ -66,6 +66,15 @@ def list_all_servers() -> list[dict]:
         servers.append({**server, "tool_count": 0, "estimated_tokens": 950})
 
     return servers
+
+
+def list_project_paths() -> list[str]:
+    """Return sorted list of known project paths from ~/.claude.json."""
+    data = read_claude_json()
+    projects = data.get("projects", {})
+    if not isinstance(projects, dict):
+        return []
+    return sorted(projects.keys())
 
 
 def toggle_server(name: str, enabled: bool) -> dict:
