@@ -116,6 +116,110 @@ def _check_env(server: dict) -> dict:
     }
 
 
+def _check_oauth_config(server: dict) -> dict:
+    """Check OAuth configuration for MCP server."""
+    oauth_url = server.get("oauth_auth_server_metadata_url")
+
+    if not oauth_url:
+        return {
+            "code": "OAUTH_NOT_CONFIGURED",
+            "status": "ok",
+            "message": "OAuth not configured (optional).",
+        }
+
+    if not isinstance(oauth_url, str):
+        return {
+            "code": "OAUTH_INVALID_TYPE",
+            "status": "fail",
+            "message": "OAuth auth server metadata URL must be a string.",
+        }
+
+    if not oauth_url.startswith(("http://", "https://")):
+        return {
+            "code": "OAUTH_INVALID_URL",
+            "status": "fail",
+            "message": "OAuth auth server metadata URL must be a valid HTTP/HTTPS URL.",
+        }
+
+    return {
+        "code": "OAUTH_CONFIGURED",
+        "status": "ok",
+        "message": "OAuth configuration is valid.",
+    }
+
+
+def _check_headers_helper(server: dict) -> dict:
+    """Check headers helper configuration and connection status."""
+    has_headers_helper = server.get("has_headers_helper", False)
+    connection_status = server.get("connection_status", "unknown")
+
+    if not has_headers_helper:
+        return {
+            "code": "HEADERS_HELPER_NOT_CONFIGURED",
+            "status": "ok",
+            "message": "Headers helper not configured (optional).",
+        }
+
+    if connection_status == "reconnecting":
+        return {
+            "code": "HEADERS_HELPER_RECONNECTING",
+            "status": "warn",
+            "message": "Server is reconnecting due to connection issues.",
+        }
+    elif connection_status == "disconnected":
+        return {
+            "code": "HEADERS_HELPER_DISCONNECTED",
+            "status": "fail",
+            "message": "Server is disconnected and unable to reconnect.",
+        }
+    elif connection_status == "connected":
+        return {
+            "code": "HEADERS_HELPER_CONNECTED",
+            "status": "ok",
+            "message": "Server is connected and functioning normally.",
+        }
+    else:
+        return {
+            "code": "HEADERS_HELPER_STATUS_UNKNOWN",
+            "status": "warn",
+            "message": "Connection status is unknown.",
+        }
+
+
+def _check_output_schema(server: dict) -> dict:
+    """Check for output schema validation issues."""
+    has_issues = server.get("has_output_schema_issues", False)
+    warnings = server.get("validation_warnings", [])
+
+    if not has_issues and not warnings:
+        return {
+            "code": "OUTPUT_SCHEMA_VALID",
+            "status": "ok",
+            "message": "No output schema validation issues detected.",
+        }
+
+    if has_issues:
+        warning_text = "; ".join(warnings) if warnings else "Unknown validation issues"
+        return {
+            "code": "OUTPUT_SCHEMA_ISSUES",
+            "status": "warn",
+            "message": f"Output schema validation issues: {warning_text}",
+        }
+
+    if warnings:
+        return {
+            "code": "OUTPUT_SCHEMA_WARNINGS",
+            "status": "warn",
+            "message": f"Output schema warnings: {'; '.join(warnings)}",
+        }
+
+    return {
+        "code": "OUTPUT_SCHEMA_VALID",
+        "status": "ok",
+        "message": "No output schema validation issues detected.",
+    }
+
+
 def diagnose_server(server: dict) -> dict:
     """Return diagnostics for one MCP server config."""
     checks = [
@@ -124,6 +228,9 @@ def diagnose_server(server: dict) -> dict:
         _check_sse_url(server),
         _check_args(server),
         _check_env(server),
+        _check_oauth_config(server),
+        _check_headers_helper(server),
+        _check_output_schema(server),
     ]
 
     if any(c["status"] == "fail" for c in checks):

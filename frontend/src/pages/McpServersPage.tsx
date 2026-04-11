@@ -43,6 +43,7 @@ export default function McpServersPage() {
   const [formCommand, setFormCommand] = useState("");
   const [formArgs, setFormArgs] = useState("");
   const [formEnv, setFormEnv] = useState("");
+  const [formOAuthUrl, setFormOAuthUrl] = useState("");
 
   const handleToggle = (name: string, enabled: boolean) => {
     toggleServer.mutate(
@@ -101,6 +102,7 @@ export default function McpServersPage() {
         command: formCommand,
         args,
         env,
+        oauth_auth_server_metadata_url: formOAuthUrl.trim() || null,
       },
       {
         onSuccess: () => {
@@ -118,6 +120,7 @@ export default function McpServersPage() {
     setFormCommand("");
     setFormArgs("");
     setFormEnv("");
+    setFormOAuthUrl("");
   };
 
   if (error) {
@@ -222,6 +225,15 @@ export default function McpServersPage() {
             multiline
             rows={3}
             placeholder={"API_KEY=your-key\nDEBUG=true"}
+          />
+          <TextField
+            label="OAuth Auth Server Metadata URL (optional)"
+            value={formOAuthUrl}
+            onChange={(e) => setFormOAuthUrl(e.target.value)}
+            fullWidth
+            size="small"
+            placeholder="https://auth.example.com/.well-known/oauth-authorization-server"
+            helperText="Configure OAuth authentication for this MCP server"
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

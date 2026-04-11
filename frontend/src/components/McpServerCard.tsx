@@ -7,12 +7,19 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Alert,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import WifiIcon from "@mui/icons-material/Wifi";
 import ExtensionIcon from "@mui/icons-material/Extension";
+import SecurityIcon from "@mui/icons-material/Security";
+import SyncIcon from "@mui/icons-material/Sync";
+import SyncProblemIcon from "@mui/icons-material/SyncProblem";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningIcon from "@mui/icons-material/Warning";
+import ErrorIcon from "@mui/icons-material/Error";
 import type { McpServer } from "../types";
 import TokenBadge from "./TokenBadge";
 
@@ -21,6 +28,63 @@ interface McpServerCardProps {
   onToggle: (name: string, enabled: boolean) => void;
   onDelete: (name: string) => void;
   toggling?: boolean;
+}
+
+function getConnectionStatusChip(status?: string, hasHeadersHelper?: boolean) {
+  if (!hasHeadersHelper) {
+    return null;
+  }
+
+  switch (status) {
+    case "connected":
+      return (
+        <Chip
+          icon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
+          label="Connected"
+          size="small"
+          sx={{
+            bgcolor: (t) => alpha(t.palette.success.main, 0.1),
+            color: "success.main",
+            "& .MuiChip-icon": { color: "success.main" },
+          }}
+        />
+      );
+    case "reconnecting":
+      return (
+        <Chip
+          icon={<SyncIcon sx={{ fontSize: 14 }} />}
+          label="Reconnecting"
+          size="small"
+          sx={{
+            bgcolor: (t) => alpha(t.palette.warning.main, 0.1),
+            color: "warning.main",
+            "& .MuiChip-icon": { color: "warning.main" },
+          }}
+        />
+      );
+    case "disconnected":
+      return (
+        <Chip
+          icon={<SyncProblemIcon sx={{ fontSize: 14 }} />}
+          label="Disconnected"
+          size="small"
+          sx={{
+            bgcolor: (t) => alpha(t.palette.error.main, 0.1),
+            color: "error.main",
+            "& .MuiChip-icon": { color: "error.main" },
+          }}
+        />
+      );
+    default:
+      return (
+        <Chip
+          icon={<SyncIcon sx={{ fontSize: 14 }} />}
+          label="Status Unknown"
+          size="small"
+          variant="outlined"
+        />
+      );
+  }
 }
 
 export default function McpServerCard({
@@ -41,7 +105,7 @@ export default function McpServerCard({
       <CardContent sx={{ p: 2.5, "&:last-child": { pb: 2.5 } }}>
         <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, flexWrap: "wrap" }}>
               <Typography variant="h5">{server.name}</Typography>
               <Chip
                 icon={
@@ -75,6 +139,19 @@ export default function McpServerCard({
                   "& .MuiChip-icon": { color: "#7C3AED" },
                 } : undefined}
               />
+              {server.oauth_auth_server_metadata_url && (
+                <Chip
+                  icon={<SecurityIcon sx={{ fontSize: 14 }} />}
+                  label="OAuth"
+                  size="small"
+                  sx={{
+                    bgcolor: (t) => alpha(t.palette.primary.main, 0.1),
+                    color: "primary.main",
+                    "& .MuiChip-icon": { color: "primary.main" },
+                  }}
+                />
+              )}
+              {getConnectionStatusChip(server.connection_status, server.has_headers_helper)}
             </Box>
             {server.project_path && (
               <Typography
@@ -128,6 +205,22 @@ export default function McpServerCard({
               )}
               <TokenBadge tokens={server.estimated_tokens} />
             </Box>
+            {/* Validation warnings */}
+            {server.has_output_schema_issues && server.validation_warnings && server.validation_warnings.length > 0 && (
+              <Box sx={{ mt: 1 }}>
+                <Alert
+                  severity="warning"
+                  icon={<WarningIcon fontSize="inherit" />}
+                  sx={{
+                    py: 0.5,
+                    fontSize: "0.75rem",
+                    "& .MuiAlert-message": { fontSize: "0.75rem" }
+                  }}
+                >
+                  Output schema issues: {server.validation_warnings.join("; ")}
+                </Alert>
+              </Box>
+            )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5 }}>
             <Switch

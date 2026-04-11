@@ -36,6 +36,15 @@ class McpServer(BaseModel):
     project_path: str | None = None
     plugin_id: str | None = None
     read_only: bool = False
+    # OAuth configuration
+    oauth_auth_server_metadata_url: str | None = None
+    # Connection status
+    has_headers_helper: bool = False
+    connection_status: str = "unknown"  # "connected" | "reconnecting" | "disconnected" | "unknown"
+    last_connection_attempt: float | None = None
+    # Validation warnings
+    has_output_schema_issues: bool = False
+    validation_warnings: list[str] = Field(default_factory=list)
 
 
 class McpServerToggleRequest(BaseModel):
@@ -55,6 +64,8 @@ class McpServerCreateRequest(BaseModel):
     env: dict[str, str] = Field(default_factory=dict)
     url: str | None = None
     scope: McpScope = McpScope.GLOBAL
+    # OAuth configuration
+    oauth_auth_server_metadata_url: str | None = None
 
 
 class McpServerListResponse(BaseModel):

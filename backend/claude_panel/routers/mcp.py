@@ -12,6 +12,7 @@ class McpServerCreateBody(BaseModel):
     command: str
     args: list[str] = []
     env: dict[str, str] = {}
+    oauth_auth_server_metadata_url: str | None = None
 
 
 @router.get("/mcp")
@@ -54,6 +55,8 @@ async def create_mcp_server(body: McpServerCreateBody):
     config = {"command": body.command, "args": body.args}
     if body.env:
         config["env"] = body.env
+    if body.oauth_auth_server_metadata_url:
+        config["oauth_auth_server_metadata_url"] = body.oauth_auth_server_metadata_url
     try:
         add_mcp_server(body.name, config)
         return {"name": body.name, "status": "created"}

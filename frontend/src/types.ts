@@ -124,6 +124,15 @@ export interface McpServer {
   read_only?: boolean;
   tool_count: number;
   estimated_tokens: number;
+  // OAuth configuration
+  oauth_auth_server_metadata_url?: string | null;
+  // Connection status
+  has_headers_helper?: boolean;
+  connection_status?: "connected" | "reconnecting" | "disconnected" | "unknown";
+  last_connection_attempt?: number | null;
+  // Validation warnings
+  has_output_schema_issues?: boolean;
+  validation_warnings?: string[];
 }
 
 export interface McpServerCreateRequest {
@@ -131,6 +140,7 @@ export interface McpServerCreateRequest {
   command: string;
   args: string[];
   env: Record<string, string>;
+  oauth_auth_server_metadata_url?: string | null;
 }
 
 export interface McpServerListResponse {

@@ -38,11 +38,19 @@ def list_all_servers() -> list[dict]:
 
     servers = []
     for server in active:
-        servers.append({
+        # Add default values for new fields
+        enhanced_server = {
             **server,
             "tool_count": 0,  # Unknown without running the server
             "estimated_tokens": 950,  # Default estimate
-        })
+            "oauth_auth_server_metadata_url": server.get("oauth_auth_server_metadata_url"),
+            "has_headers_helper": server.get("has_headers_helper", False),
+            "connection_status": server.get("connection_status", "unknown"),
+            "last_connection_attempt": server.get("last_connection_attempt"),
+            "has_output_schema_issues": server.get("has_output_schema_issues", False),
+            "validation_warnings": server.get("validation_warnings", []),
+        }
+        servers.append(enhanced_server)
 
     for name, config in disabled.items():
         server_type = "sse" if "url" in config else "stdio"
@@ -57,11 +65,28 @@ def list_all_servers() -> list[dict]:
             "project_path": None,
             "tool_count": 0,
             "estimated_tokens": 0,
+            "oauth_auth_server_metadata_url": config.get("oauth_auth_server_metadata_url"),
+            "has_headers_helper": config.get("has_headers_helper", False),
+            "connection_status": config.get("connection_status", "unknown"),
+            "last_connection_attempt": config.get("last_connection_attempt"),
+            "has_output_schema_issues": config.get("has_output_schema_issues", False),
+            "validation_warnings": config.get("validation_warnings", []),
         })
 
     # Append plugin-provided MCP servers
     for server in list_plugin_mcp_entries():
-        servers.append({**server, "tool_count": 0, "estimated_tokens": 950})
+        enhanced_server = {
+            **server,
+            "tool_count": 0,
+            "estimated_tokens": 950,
+            "oauth_auth_server_metadata_url": server.get("oauth_auth_server_metadata_url"),
+            "has_headers_helper": server.get("has_headers_helper", False),
+            "connection_status": server.get("connection_status", "unknown"),
+            "last_connection_attempt": server.get("last_connection_attempt"),
+            "has_output_schema_issues": server.get("has_output_schema_issues", False),
+            "validation_warnings": server.get("validation_warnings", []),
+        }
+        servers.append(enhanced_server)
 
     return servers
 
