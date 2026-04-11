@@ -50,7 +50,20 @@ class TestListAllServers:
         assert project_server["scope"] == "project"
         assert project_server["project_path"] == "/tmp/project-a"
         assert project_server["server_type"] == "http"
-        assert project_server["command"] == "https://example.com/mcp"
+        assert project_server["url"] == "https://example.com/mcp"
+        assert project_server["command"] is None
+
+    def test_http_server_has_url_field(self, mock_settings, tmp_claude_json):
+        """HTTP servers should have url field set, not stuffed into command."""
+        tmp_claude_json.write_text(json.dumps({
+            "mcpServers": {
+                "my-http": {"type": "http", "url": "https://example.com/mcp"},
+            }
+        }))
+        servers = mcp_service.list_all_servers()
+        assert len(servers) == 1
+        assert servers[0]["url"] == "https://example.com/mcp"
+        assert servers[0]["command"] is None
 
     def test_disabled_http_server_normalized(self, mock_settings, tmp_claude_json):
         """Disabled servers with 'sse' type are normalized to 'http'."""

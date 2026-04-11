@@ -45,11 +45,13 @@ def list_all_servers() -> list[dict]:
         })
 
     for name, config in disabled.items():
-        server_type = "http" if "url" in config else "stdio"
+        is_network = "url" in config or config.get("type") == "http"
+        server_type = "http" if is_network else "stdio"
         servers.append({
             "name": name,
             "server_type": server_type,
-            "command": config.get("command", config.get("url", "")),
+            "command": config.get("command") if not is_network else None,
+            "url": config.get("url") if is_network else None,
             "args": config.get("args", []),
             "env": config.get("env", {}),
             "enabled": False,

@@ -58,7 +58,7 @@ def _check_http_url(server: dict) -> dict:
             "message": "URL check skipped for non-HTTP server.",
         }
 
-    url = str(server.get("url", server.get("command", ""))).strip()
+    url = str(server.get("url") or "").strip()
     if not url.startswith(("http://", "https://")):
         return {
             "code": "URL_INVALID",

@@ -46,7 +46,8 @@ def list_mcp_server_entries(data: dict | None = None) -> list[dict]:
             entries.append({
                 "name": name,
                 "server_type": "http" if is_network_server else "stdio",
-                "command": config.get("command", config.get("url", "")),
+                "command": config.get("command") if not is_network_server else None,
+                "url": config.get("url") if is_network_server else None,
                 "args": config.get("args", []) if isinstance(config.get("args"), list) else [],
                 "env": config.get("env", {}) if isinstance(config.get("env"), dict) else {},
                 "enabled": True,
