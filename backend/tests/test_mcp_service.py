@@ -85,6 +85,70 @@ class TestListAllServers:
         assert disabled[0]["server_type"] == "http"
 
 
+class TestCreateServer:
+    def test_create_stdio_server(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({"mcpServers": {}}))
+        result = mcp_service.create_server(
+            name="my-stdio",
+            config={"command": "node", "args": ["server.js"], "env": {}},
+            scope="global",
+            project_path=None,
+        )
+        assert result["name"] == "my-stdio"
+        servers = mcp_service.list_all_servers()
+        assert any(s["name"] == "my-stdio" for s in servers)
+
+    def test_create_http_server(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({"mcpServers": {}}))
+        result = mcp_service.create_server(
+            name="my-http",
+            config={"url": "https://example.com/mcp"},
+            scope="global",
+            project_path=None,
+        )
+        assert result["name"] == "my-http"
+        servers = mcp_service.list_all_servers()
+        http_server = next(s for s in servers if s["name"] == "my-http")
+        assert http_server["server_type"] == "http"
+        assert http_server["url"] == "https://example.com/mcp"
+
+    def test_create_project_scoped_server(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({
+            "mcpServers": {},
+            "projects": {"/tmp/my-project": {}},
+        }))
+        result = mcp_service.create_server(
+            name="proj-server",
+            config={"command": "node", "args": ["s.js"]},
+            scope="project",
+            project_path="/tmp/my-project",
+        )
+        assert result["name"] == "proj-server"
+        servers = mcp_service.list_all_servers()
+        proj = next(s for s in servers if s["name"] == "proj-server")
+        assert proj["scope"] == "project"
+        assert proj["project_path"] == "/tmp/my-project"
+
+    def test_create_duplicate_name_raises(self, mock_settings):
+        with pytest.raises(ValueError, match="already exists"):
+            mcp_service.create_server(
+                name="test-server",  # already exists in fixture
+                config={"command": "node"},
+                scope="global",
+                project_path=None,
+            )
+
+    def test_create_project_scoped_unknown_project_raises(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({"mcpServers": {}}))
+        with pytest.raises(ValueError, match="not found"):
+            mcp_service.create_server(
+                name="new-server",
+                config={"command": "node"},
+                scope="project",
+                project_path="/nonexistent",
+            )
+
+
 class TestListProjectPaths:
     def test_returns_project_paths(self, mock_settings, tmp_claude_json):
         tmp_claude_json.write_text(json.dumps({

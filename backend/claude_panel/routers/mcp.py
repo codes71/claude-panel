@@ -2,16 +2,20 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from claude_panel.services import mcp_service
-from claude_panel.services.claude_json_service import add_mcp_server, remove_mcp_server
+from claude_panel.services.claude_json_service import remove_mcp_server
 
 router = APIRouter(tags=["mcp"])
 
 
 class McpServerCreateBody(BaseModel):
     name: str
-    command: str
+    server_type: str = "stdio"
+    command: str | None = None
     args: list[str] = []
     env: dict[str, str] = {}
+    url: str | None = None
+    scope: str = "global"
+    project_path: str | None = None
 
 
 @router.get("/mcp")
@@ -56,12 +60,21 @@ async def toggle_mcp_server(name: str, enabled: bool = True):
 
 @router.post("/mcp")
 async def create_mcp_server(body: McpServerCreateBody):
-    config = {"command": body.command, "args": body.args}
-    if body.env:
-        config["env"] = body.env
+    # Build the raw config dict for ~/.claude.json
+    if body.server_type == "http":
+        if not body.url:
+            raise HTTPException(status_code=400, detail="URL is required for HTTP servers")
+        config = {"type": "http", "url": body.url}
+        if body.env:
+            config["env"] = body.env
+    else:
+        if not body.command:
+            raise HTTPException(status_code=400, detail="Command is required for stdio servers")
+        config = {"command": body.command, "args": body.args}
+        if body.env:
+            config["env"] = body.env
     try:
-        add_mcp_server(body.name, config)
-        return {"name": body.name, "status": "created"}
+        return mcp_service.create_server(body.name, config, body.scope, body.project_path)
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 

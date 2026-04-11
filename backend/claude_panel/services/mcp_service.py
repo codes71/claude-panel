@@ -4,7 +4,10 @@ import json
 from pathlib import Path
 
 from claude_panel.config import settings
-from claude_panel.services.claude_json_service import get_mcp_servers, list_mcp_server_entries, read_claude_json, set_mcp_servers
+from claude_panel.services.claude_json_service import (
+    add_mcp_server, add_project_mcp_server, get_mcp_servers,
+    list_mcp_server_entries, read_claude_json, set_mcp_servers,
+)
 from claude_panel.services.mcp_diagnostics_service import diagnose_server as diagnose_server_config
 from claude_panel.services import mcp_health_service
 from claude_panel.services.plugin_service import list_plugin_mcp_entries
@@ -66,6 +69,27 @@ def list_all_servers() -> list[dict]:
         servers.append({**server, "tool_count": 0, "estimated_tokens": 950})
 
     return servers
+
+
+def create_server(name: str, config: dict, scope: str, project_path: str | None) -> dict:
+    """Create an MCP server in the specified scope.
+
+    For global scope: writes to mcpServers in ~/.claude.json.
+    For project scope: writes to projects[project_path].mcpServers.
+    """
+    if scope == "project":
+        if not project_path:
+            raise ValueError("project_path is required for project scope")
+        # Check project exists
+        data = read_claude_json()
+        projects = data.get("projects", {})
+        if project_path not in projects:
+            raise ValueError(f"Project '{project_path}' not found in config")
+        add_project_mcp_server(project_path, name, config)
+    else:
+        add_mcp_server(name, config)
+
+    return {"name": name, "status": "created"}
 
 
 def list_project_paths() -> list[str]:
