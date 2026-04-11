@@ -117,6 +117,18 @@ def add_project_mcp_server(project_path: str, name: str, config: dict) -> dict:
     return config
 
 
+def update_project_mcp_server(project_path: str, name: str, config: dict) -> None:
+    """Update an existing MCP server in a project's config."""
+    data = read_claude_json()
+    projects = data.get("projects", {})
+    project = projects.get(project_path, {})
+    mcp_servers = project.get("mcpServers", {})
+    if name not in mcp_servers:
+        raise KeyError(f"MCP server '{name}' not found in project '{project_path}'")
+    mcp_servers[name] = config
+    safe_write_json(_claude_json_path(), data)
+
+
 def remove_project_mcp_server(project_path: str, name: str) -> None:
     """Remove an MCP server from a specific project's config."""
     data = read_claude_json()

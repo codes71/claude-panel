@@ -18,6 +18,17 @@ class McpServerCreateBody(BaseModel):
     project_path: str | None = None
 
 
+class McpServerUpdateBody(BaseModel):
+    new_name: str | None = None
+    server_type: str | None = None
+    command: str | None = None
+    args: list[str] | None = None
+    env: dict[str, str] | None = None
+    url: str | None = None
+    scope: str | None = None
+    project_path: str | None = None
+
+
 @router.get("/mcp")
 async def list_mcp_servers():
     servers = mcp_service.list_all_servers()
@@ -55,6 +66,43 @@ async def toggle_mcp_server(name: str, enabled: bool = True):
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/mcp/{name}")
+async def update_mcp_server(name: str, body: McpServerUpdateBody):
+    # Build config dict from body fields
+    updates: dict = {}
+    if body.new_name:
+        updates["new_name"] = body.new_name
+    if body.scope:
+        updates["scope"] = body.scope
+    if body.project_path:
+        updates["project_path"] = body.project_path
+
+    # Build config if any config fields are provided
+    config_fields = {}
+    if body.server_type == "http":
+        if body.url:
+            config_fields["type"] = "http"
+            config_fields["url"] = body.url
+        if body.env is not None:
+            config_fields["env"] = body.env
+    elif body.server_type == "stdio" or body.command is not None:
+        if body.command is not None:
+            config_fields["command"] = body.command
+        if body.args is not None:
+            config_fields["args"] = body.args
+        if body.env is not None:
+            config_fields["env"] = body.env
+    if config_fields:
+        updates["config"] = config_fields
+
+    try:
+        return mcp_service.update_server(name, updates)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 

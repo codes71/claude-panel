@@ -85,6 +85,73 @@ class TestListAllServers:
         assert disabled[0]["server_type"] == "http"
 
 
+class TestUpdateServer:
+    def test_update_command(self, mock_settings):
+        """Update command of existing server."""
+        result = mcp_service.update_server("test-server", {
+            "config": {"command": "python", "args": ["-m", "server"]},
+        })
+        assert result["status"] == "updated"
+        servers = mcp_service.list_all_servers()
+        s = next(s for s in servers if s["name"] == "test-server")
+        assert s["command"] == "python"
+
+    def test_rename_server(self, mock_settings):
+        """Rename a server."""
+        result = mcp_service.update_server("test-server", {
+            "new_name": "renamed-server",
+        })
+        assert result["name"] == "renamed-server"
+        servers = mcp_service.list_all_servers()
+        names = [s["name"] for s in servers]
+        assert "renamed-server" in names
+        assert "test-server" not in names
+
+    def test_change_scope_global_to_project(self, mock_settings, tmp_claude_json):
+        tmp_claude_json.write_text(json.dumps({
+            "mcpServers": {
+                "my-server": {"command": "node", "args": ["s.js"]},
+            },
+            "projects": {"/tmp/proj": {}},
+        }))
+        result = mcp_service.update_server("my-server", {
+            "scope": "project",
+            "project_path": "/tmp/proj",
+        })
+        assert result["status"] == "updated"
+        servers = mcp_service.list_all_servers()
+        s = next(s for s in servers if s["name"] == "my-server")
+        assert s["scope"] == "project"
+        assert s["project_path"] == "/tmp/proj"
+
+    def test_change_type_stdio_to_http(self, mock_settings):
+        """Change server from stdio to http."""
+        result = mcp_service.update_server("test-server", {
+            "config": {"type": "http", "url": "https://example.com/mcp"},
+        })
+        assert result["status"] == "updated"
+        servers = mcp_service.list_all_servers()
+        s = next(s for s in servers if s["name"] == "test-server")
+        assert s["server_type"] == "http"
+        assert s["url"] == "https://example.com/mcp"
+
+    def test_update_nonexistent_raises(self, mock_settings):
+        with pytest.raises(KeyError, match="not found"):
+            mcp_service.update_server("nonexistent", {"config": {"command": "node"}})
+
+    def test_update_disabled_server(self, mock_settings):
+        """Can update a disabled server in the sidecar."""
+        mcp_service.toggle_server("test-server", False)
+        result = mcp_service.update_server("test-server", {
+            "config": {"command": "python", "args": ["new.py"]},
+        })
+        assert result["status"] == "updated"
+        servers = mcp_service.list_all_servers()
+        s = next(s for s in servers if s["name"] == "test-server")
+        assert s["command"] == "python"
+        assert s["enabled"] is False
+
+
 class TestCreateServer:
     def test_create_stdio_server(self, mock_settings, tmp_claude_json):
         tmp_claude_json.write_text(json.dumps({"mcpServers": {}}))
