@@ -74,7 +74,7 @@ class TestDiscoverMcpServers:
         stdio = next(s for s in servers if s.name == "server1")
         sse = next(s for s in servers if s.name == "server2")
         assert stdio.server_type == "stdio"
-        assert sse.server_type == "sse"
+        assert sse.server_type == "http"
 
     def test_no_data(self):
         assert _discover_mcp_servers(None) == []

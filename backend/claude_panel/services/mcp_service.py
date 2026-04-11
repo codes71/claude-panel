@@ -45,7 +45,7 @@ def list_all_servers() -> list[dict]:
         })
 
     for name, config in disabled.items():
-        server_type = "sse" if "url" in config else "stdio"
+        server_type = "http" if "url" in config else "stdio"
         servers.append({
             "name": name,
             "server_type": server_type,

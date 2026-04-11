@@ -6,7 +6,7 @@ import time
 
 def _check_transport(server: dict) -> dict:
     transport = server.get("server_type")
-    if transport not in {"stdio", "sse"}:
+    if transport not in {"stdio", "http"}:
         return {
             "code": "TRANSPORT_INVALID",
             "status": "fail",
@@ -50,26 +50,26 @@ def _check_stdio_command(server: dict) -> dict:
     }
 
 
-def _check_sse_url(server: dict) -> dict:
-    if server.get("server_type") != "sse":
+def _check_http_url(server: dict) -> dict:
+    if server.get("server_type") != "http":
         return {
             "code": "URL_NOT_REQUIRED",
             "status": "ok",
-            "message": "URL check skipped for non-SSE server.",
+            "message": "URL check skipped for non-HTTP server.",
         }
 
-    url = str(server.get("command", "")).strip()
+    url = str(server.get("url", server.get("command", ""))).strip()
     if not url.startswith(("http://", "https://")):
         return {
             "code": "URL_INVALID",
             "status": "fail",
-            "message": "SSE server URL must start with http:// or https://.",
+            "message": "HTTP server URL must start with http:// or https://.",
         }
 
     return {
         "code": "URL_VALID",
         "status": "ok",
-        "message": "SSE URL is configured.",
+        "message": "HTTP URL is configured.",
     }
 
 
@@ -121,7 +121,7 @@ def diagnose_server(server: dict) -> dict:
     checks = [
         _check_transport(server),
         _check_stdio_command(server),
-        _check_sse_url(server),
+        _check_http_url(server),
         _check_args(server),
         _check_env(server),
     ]

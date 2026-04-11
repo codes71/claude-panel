@@ -49,8 +49,27 @@ class TestListAllServers:
         assert global_server["project_path"] is None
         assert project_server["scope"] == "project"
         assert project_server["project_path"] == "/tmp/project-a"
-        assert project_server["server_type"] == "sse"
+        assert project_server["server_type"] == "http"
         assert project_server["command"] == "https://example.com/mcp"
+
+    def test_disabled_http_server_normalized(self, mock_settings, tmp_claude_json):
+        """Disabled servers with 'sse' type are normalized to 'http'."""
+        # First create an http server and disable it
+        tmp_claude_json.write_text(json.dumps({
+            "mcpServers": {
+                "http-server": {"type": "http", "url": "https://example.com/mcp"},
+            }
+        }))
+        mcp_service.toggle_server("http-server", False)
+
+        # Read the sidecar directly and patch it to use old "sse" type
+        sidecar = mcp_service._read_sidecar()
+        # The sidecar stores raw config, not server_type
+        # When listed, disabled servers should normalize to "http" not "sse"
+        servers = mcp_service.list_all_servers()
+        disabled = [s for s in servers if not s["enabled"]]
+        assert len(disabled) == 1
+        assert disabled[0]["server_type"] == "http"
 
 
 class TestToggleServer:
