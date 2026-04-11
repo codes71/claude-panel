@@ -1,11 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { get, post, put, del } from "./client";
-import type { McpServerListResponse, McpServerCreateRequest } from "../types";
+import type {
+  McpServerListResponse,
+  McpServerCreateRequest,
+  McpServerUpdateRequest,
+  McpProjectsResponse,
+} from "../types";
 
 export function useMcpServers() {
   return useQuery({
     queryKey: ["mcp-servers"],
     queryFn: () => get<McpServerListResponse>("/mcp"),
+  });
+}
+
+export function useProjectPaths() {
+  return useQuery({
+    queryKey: ["mcp-projects"],
+    queryFn: () => get<McpProjectsResponse>("/mcp/projects"),
   });
 }
 
@@ -28,6 +40,18 @@ export function useCreateMcpServer() {
   return useMutation({
     mutationFn: (data: McpServerCreateRequest) =>
       post<{ name: string; status: string }>("/mcp", data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["mcp-servers"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
+export function useUpdateMcpServer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ name, data }: { name: string; data: McpServerUpdateRequest }) =>
+      put<{ name: string; status: string }>(`/mcp/${encodeURIComponent(name)}`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["mcp-servers"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });

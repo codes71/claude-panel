@@ -113,10 +113,11 @@ export interface PluginListResponse {
 // ---- MCP Servers ----
 export interface McpServer {
   name: string;
-  server_type: "stdio" | "sse";
-  command: string;
+  server_type: "stdio" | "http";
+  command: string | null;
   args: string[];
   env: Record<string, string>;
+  url: string | null;
   enabled: boolean;
   scope: "global" | "project" | "plugin";
   project_path?: string | null;
@@ -128,14 +129,33 @@ export interface McpServer {
 
 export interface McpServerCreateRequest {
   name: string;
-  command: string;
-  args: string[];
-  env: Record<string, string>;
+  server_type: "stdio" | "http";
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+  scope: "global" | "project";
+  project_path?: string | null;
+}
+
+export interface McpServerUpdateRequest {
+  new_name?: string;
+  server_type?: "stdio" | "http";
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+  scope?: "global" | "project";
+  project_path?: string | null;
 }
 
 export interface McpServerListResponse {
   servers: McpServer[];
   total_tokens: number;
+}
+
+export interface McpProjectsResponse {
+  projects: string[];
 }
 
 // ---- CLAUDE.md ----
@@ -632,7 +652,7 @@ export interface McpDiagnosticCheck {
 export interface McpDiagnosticReport {
   name: string;
   enabled: boolean;
-  server_type: "stdio" | "sse";
+  server_type: "stdio" | "http";
   scope: "global" | "project" | "plugin";
   project_path?: string | null;
   status: "ok" | "warn" | "fail";
