@@ -222,7 +222,7 @@ def diagnose_server(name: str) -> dict:
     if not server:
         raise KeyError(f"Server '{name}' not found")
 
-    report = diagnose_server_config(server)
+    report = diagnose_server_config(server, all_servers=servers)
     return {
         "name": name,
         "enabled": server["enabled"],
@@ -235,9 +235,10 @@ def diagnose_server(name: str) -> dict:
 
 def diagnose_all_servers() -> dict:
     """Return diagnostics for all configured MCP servers."""
+    all_servers = list_all_servers()
     reports = []
-    for server in list_all_servers():
-        report = diagnose_server_config(server)
+    for server in all_servers:
+        report = diagnose_server_config(server, all_servers=all_servers)
         reports.append({
             "name": server["name"],
             "enabled": server["enabled"],
