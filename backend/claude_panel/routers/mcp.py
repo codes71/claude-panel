@@ -2,16 +2,30 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from claude_panel.services import mcp_service
-from claude_panel.services.claude_json_service import add_mcp_server, remove_mcp_server
 
 router = APIRouter(tags=["mcp"])
 
 
 class McpServerCreateBody(BaseModel):
     name: str
-    command: str
+    server_type: str = "stdio"
+    command: str | None = None
     args: list[str] = []
     env: dict[str, str] = {}
+    url: str | None = None
+    scope: str = "global"
+    project_path: str | None = None
+
+
+class McpServerUpdateBody(BaseModel):
+    new_name: str | None = None
+    server_type: str | None = None
+    command: str | None = None
+    args: list[str] | None = None
+    env: dict[str, str] | None = None
+    url: str | None = None
+    scope: str | None = None
+    project_path: str | None = None
 
 
 @router.get("/mcp")
@@ -29,6 +43,11 @@ async def list_mcp_diagnostics():
 @router.get("/mcp/health")
 async def list_mcp_health():
     return mcp_service.list_health()
+
+
+@router.get("/mcp/projects")
+async def list_mcp_projects():
+    return {"projects": mcp_service.list_project_paths()}
 
 
 @router.get("/mcp/{name}/diagnose")
@@ -49,14 +68,60 @@ async def toggle_mcp_server(name: str, enabled: bool = True):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.put("/mcp/{name}")
+async def update_mcp_server(name: str, body: McpServerUpdateBody):
+    # Build config dict from body fields
+    updates: dict = {}
+    if body.new_name:
+        updates["new_name"] = body.new_name
+    if body.scope:
+        updates["scope"] = body.scope
+    if body.project_path:
+        updates["project_path"] = body.project_path
+
+    # Build config if any config fields are provided
+    config_fields = {}
+    if body.server_type == "http":
+        if body.url:
+            config_fields["type"] = "http"
+            config_fields["url"] = body.url
+        if body.env is not None:
+            config_fields["env"] = body.env
+    elif body.server_type == "stdio" or body.command is not None:
+        if body.command is not None:
+            config_fields["command"] = body.command
+        if body.args is not None:
+            config_fields["args"] = body.args
+        if body.env is not None:
+            config_fields["env"] = body.env
+    if config_fields:
+        updates["config"] = config_fields
+
+    try:
+        return mcp_service.update_server(name, updates)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.post("/mcp")
 async def create_mcp_server(body: McpServerCreateBody):
-    config = {"command": body.command, "args": body.args}
-    if body.env:
-        config["env"] = body.env
+    # Build the raw config dict for ~/.claude.json
+    if body.server_type == "http":
+        if not body.url:
+            raise HTTPException(status_code=400, detail="URL is required for HTTP servers")
+        config = {"type": "http", "url": body.url}
+        if body.env:
+            config["env"] = body.env
+    else:
+        if not body.command:
+            raise HTTPException(status_code=400, detail="Command is required for stdio servers")
+        config = {"command": body.command, "args": body.args}
+        if body.env:
+            config["env"] = body.env
     try:
-        add_mcp_server(body.name, config)
-        return {"name": body.name, "status": "created"}
+        return mcp_service.create_server(body.name, config, body.scope, body.project_path)
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
@@ -64,7 +129,8 @@ async def create_mcp_server(body: McpServerCreateBody):
 @router.delete("/mcp/{name}")
 async def delete_mcp_server(name: str):
     try:
-        remove_mcp_server(name)
-        return {"name": name, "status": "deleted"}
+        return mcp_service.delete_server(name)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))

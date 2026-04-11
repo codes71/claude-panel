@@ -226,11 +226,12 @@ def list_plugin_mcp_entries() -> list[dict]:
             if not isinstance(config, dict):
                 continue
             resolved = _resolve_plugin_root(config, install_path)
-            server_type = "sse" if "url" in resolved else "stdio"
+            is_network = "url" in resolved or resolved.get("type") == "http"
             entries.append({
                 "name": name,
-                "server_type": server_type,
-                "command": resolved.get("command", resolved.get("url", "")),
+                "server_type": "http" if is_network else "stdio",
+                "command": resolved.get("command") if not is_network else None,
+                "url": resolved.get("url") if is_network else None,
                 "args": resolved.get("args", []),
                 "env": resolved.get("env", {}),
                 "enabled": True,

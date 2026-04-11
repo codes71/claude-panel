@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/Edit";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import WifiIcon from "@mui/icons-material/Wifi";
 import ExtensionIcon from "@mui/icons-material/Extension";
@@ -20,6 +21,7 @@ interface McpServerCardProps {
   server: McpServer;
   onToggle: (name: string, enabled: boolean) => void;
   onDelete: (name: string) => void;
+  onEdit: (server: McpServer) => void;
   toggling?: boolean;
 }
 
@@ -27,6 +29,7 @@ export default function McpServerCard({
   server,
   onToggle,
   onDelete,
+  onEdit,
   toggling,
 }: McpServerCardProps) {
   const isReadOnly = server.scope === "project" || server.scope === "plugin";
@@ -116,7 +119,9 @@ export default function McpServerCard({
                 wordBreak: "break-all",
               }}
             >
-              {server.command} {server.args.join(" ")}
+              {server.server_type === "http"
+                ? server.url
+                : `${server.command} ${server.args.join(" ")}`}
             </Typography>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
               {server.tool_count > 0 && (
@@ -136,16 +141,32 @@ export default function McpServerCard({
               disabled={toggling || isReadOnly}
               color="primary"
             />
-            <Tooltip title={isReadOnly ? (server.scope === "plugin" ? "Managed by plugin" : "Project-scoped servers are read-only here") : "Delete server"}>
-              <IconButton
-                size="small"
-                onClick={() => onDelete(server.name)}
-                disabled={isReadOnly}
-                sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}
-              >
-                <DeleteOutlineIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Tooltip>
+            <Box sx={{ display: "flex", gap: 0.25 }}>
+              <Tooltip title={isReadOnly ? "Read-only" : "Edit server"}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => onEdit(server)}
+                    disabled={isReadOnly}
+                    sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}
+                  >
+                    <EditIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title={isReadOnly ? (server.scope === "plugin" ? "Managed by plugin" : "Read-only") : "Delete server"}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => onDelete(server.name)}
+                    disabled={isReadOnly}
+                    sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}
+                  >
+                    <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Box>
           </Box>
         </Box>
       </CardContent>

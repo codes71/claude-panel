@@ -45,8 +45,9 @@ def list_mcp_server_entries(data: dict | None = None) -> list[dict]:
             is_network_server = "url" in config or config.get("type") == "http"
             entries.append({
                 "name": name,
-                "server_type": "sse" if is_network_server else "stdio",
-                "command": config.get("command", config.get("url", "")),
+                "server_type": "http" if is_network_server else "stdio",
+                "command": config.get("command") if not is_network_server else None,
+                "url": config.get("url") if is_network_server else None,
                 "args": config.get("args", []) if isinstance(config.get("args"), list) else [],
                 "env": config.get("env", {}) if isinstance(config.get("env"), dict) else {},
                 "enabled": True,
@@ -99,3 +100,42 @@ def update_mcp_server(name: str, config: dict) -> dict:
         raise KeyError(f"MCP server '{name}' not found")
     servers[name] = config
     return set_mcp_servers(servers)
+
+
+def add_project_mcp_server(project_path: str, name: str, config: dict) -> dict:
+    """Add an MCP server to a specific project's config in ~/.claude.json."""
+    data = read_claude_json()
+    projects = data.setdefault("projects", {})
+    if project_path not in projects:
+        raise ValueError(f"Project '{project_path}' not found in ~/.claude.json")
+    project = projects.setdefault(project_path, {})
+    mcp_servers = project.setdefault("mcpServers", {})
+    if name in mcp_servers:
+        raise ValueError(f"MCP server '{name}' already exists in project '{project_path}'")
+    mcp_servers[name] = config
+    safe_write_json(_claude_json_path(), data)
+    return config
+
+
+def update_project_mcp_server(project_path: str, name: str, config: dict) -> None:
+    """Update an existing MCP server in a project's config."""
+    data = read_claude_json()
+    projects = data.get("projects", {})
+    project = projects.get(project_path, {})
+    mcp_servers = project.get("mcpServers", {})
+    if name not in mcp_servers:
+        raise KeyError(f"MCP server '{name}' not found in project '{project_path}'")
+    mcp_servers[name] = config
+    safe_write_json(_claude_json_path(), data)
+
+
+def remove_project_mcp_server(project_path: str, name: str) -> None:
+    """Remove an MCP server from a specific project's config."""
+    data = read_claude_json()
+    projects = data.get("projects", {})
+    project = projects.get(project_path, {})
+    mcp_servers = project.get("mcpServers", {})
+    if name not in mcp_servers:
+        raise KeyError(f"MCP server '{name}' not found in project '{project_path}'")
+    del mcp_servers[name]
+    safe_write_json(_claude_json_path(), data)
