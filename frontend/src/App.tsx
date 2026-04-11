@@ -200,7 +200,7 @@ export default function App() {
           {!collapsed && (
             <>
               <Typography variant="caption" sx={{ color: "text.secondary", display: "block", textTransform: "none", letterSpacing: "normal", fontSize: "0.65rem" }}>
-                v2.0.0
+                v{__APP_VERSION__}
               </Typography>
               <Typography variant="caption" sx={{ color: "text.secondary", display: "block", textTransform: "none", letterSpacing: "normal", fontSize: "0.6rem", mt: 0.25 }}>
                 Created by Thura
