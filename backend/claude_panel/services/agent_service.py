@@ -37,16 +37,33 @@ def _resolve_agent_path(name: str) -> Path:
     return resolved
 
 
+def _read_frontmatter_only(file_path: Path) -> str:
+    """Read just enough of a file to extract YAML frontmatter.
+
+    Frontmatter lives between ``---`` markers at the top.  Reading 2 KB
+    is more than enough for any reasonable frontmatter block and avoids
+    loading multi-KB agent instruction bodies we don't need for the list.
+    """
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read(2048)
+    except OSError:
+        return ""
+
+
 def _build_agent_info(file_path: Path, agents_dir: Path) -> dict | None:
     """Build an AgentInfo-compatible dict from a .md file."""
     try:
         stat = file_path.stat()
-        content = file_path.read_text(encoding="utf-8")
     except OSError:
         return None
 
+    head = _read_frontmatter_only(file_path)
+    if not head:
+        return None
+
     name = file_path.stem
-    fm = parse_frontmatter(content)
+    fm = parse_frontmatter(head)
 
     return {
         "name": name,

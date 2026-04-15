@@ -50,12 +50,13 @@ export default function CommandDetail({
   const selectedQualifiedName = selectedInfo?.qualified_name ?? "";
 
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
       <CardContent
         sx={{
           height: "100%",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         {!selectedInfo ? (

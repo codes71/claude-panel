@@ -9,6 +9,7 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
+import MarkdownField from "../../components/MarkdownField";
 
 const VALID_NAME_RE = /^[a-zA-Z0-9_-]+$/;
 
@@ -97,21 +98,13 @@ export function CreateCommandDialog({
             placeholder="What this command does"
             helperText="Shows in Claude Code's skill list"
           />
-          <TextField
+          <MarkdownField
             label="Content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            fullWidth
-            multiline
             minRows={6}
             maxRows={12}
             placeholder="Enter command content..."
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.8rem",
-              },
-            }}
           />
         </Box>
       </DialogContent>

@@ -11,6 +11,7 @@ export function useClaudeMdFiles() {
   return useQuery({
     queryKey: ["claude-md"],
     queryFn: () => get<ClaudeMdListResponse>("/claude-md"),
+    staleTime: 60_000,
   });
 }
 
@@ -20,6 +21,7 @@ export function useClaudeMdFile(path: string | null) {
     queryFn: () =>
       get<ClaudeMdFileContent>(`/claude-md/file?path=${encodeURIComponent(path!)}`),
     enabled: !!path,
+    staleTime: 30_000,
   });
 }
 

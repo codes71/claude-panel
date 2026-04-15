@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
-import { Box, Button, TextField } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import TokenBadge from "./TokenBadge";
+import MarkdownField from "./MarkdownField";
 
 interface CodeEditorProps {
   content: string;
@@ -79,6 +80,7 @@ export default function CodeEditor({
         <Box
           sx={{
             flex: 1,
+            minHeight: 0,
             p: 2,
             bgcolor: "background.default",
             borderRadius: 1,
@@ -94,26 +96,10 @@ export default function CodeEditor({
           {content || "(empty)"}
         </Box>
       ) : (
-        <TextField
-          multiline
-          fullWidth
+        <MarkdownField
+          flexFill
           value={content}
           onChange={(e) => onChange(e.target.value)}
-          sx={{
-            flex: 1,
-            "& .MuiOutlinedInput-root": {
-              height: "100%",
-              alignItems: "flex-start",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.8rem",
-              lineHeight: 1.8,
-              bgcolor: "background.default",
-            },
-            "& textarea": {
-              height: "100% !important",
-              overflow: "auto !important",
-            },
-          }}
         />
       )}
     </>

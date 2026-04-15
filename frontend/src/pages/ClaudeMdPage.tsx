@@ -334,7 +334,7 @@ export default function ClaudeMdPage() {
         </Button>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, minHeight: 500 }}>
+      <Box sx={{ display: "flex", gap: 2, minHeight: 500, height: "calc(100vh - 180px)" }}>
         {/* Tree view sidebar */}
         <Card sx={{ width: "30%", minWidth: 260, flexShrink: 0, display: "flex", flexDirection: "column" }}>
           <Box sx={{ p: 1.5, borderBottom: 1, borderColor: "divider" }}>
@@ -390,8 +390,8 @@ export default function ClaudeMdPage() {
         </Card>
 
         {/* Editor area */}
-        <Card sx={{ flex: 1 }}>
-          <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <Card sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+          <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {!selectedFile ? (
               <Box
                 sx={{

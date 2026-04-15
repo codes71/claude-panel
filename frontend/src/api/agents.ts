@@ -14,6 +14,7 @@ export function useAgents() {
   return useQuery({
     queryKey: ["agents"],
     queryFn: () => get<AgentListResponse>("/agents"),
+    staleTime: 60_000,
   });
 }
 
@@ -22,6 +23,7 @@ export function useAgentDetail(name: string | null) {
     queryKey: ["agent", name],
     queryFn: () => get<AgentDetail>(`/agents/${encodeURIComponent(name!)}`),
     enabled: name !== null,
+    staleTime: 30_000,
   });
 }
 

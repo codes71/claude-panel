@@ -145,7 +145,7 @@ export default function AgentsPage() {
         </Box>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, minHeight: 500 }}>
+      <Box sx={{ display: "flex", gap: 2, minHeight: 500, height: "calc(100vh - 180px)" }}>
         <AgentList
           agents={agents}
           filter={filter}

@@ -51,12 +51,13 @@ export default function AgentEditor({
     agentDetail?.token_estimate ?? Math.ceil(content.length / 4);
 
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
       <CardContent
         sx={{
           height: "100%",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         {!selectedInfo ? (

@@ -242,7 +242,13 @@ export default function App() {
         {/* Page content */}
         <Box
           component="main"
-          sx={{ flexGrow: 1, p: 3, maxWidth: "100%" }}
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            maxWidth: "100%",
+            overflow: "auto",
+            height: `calc(100vh - ${HEADER_HEIGHT}px)`,
+          }}
           key={location.pathname}
         >
           <ErrorBoundary>
