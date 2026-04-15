@@ -12,6 +12,7 @@ from typing import Any
 
 from claude_panel.config import settings
 from claude_panel.services.claude_json_service import list_mcp_server_entries
+from claude_panel.services.claude_md_service import _cache_invalidate as _invalidate_claude_md_cache
 
 logger = logging.getLogger(__name__)
 
@@ -175,6 +176,9 @@ def switch_instance(path: str) -> dict[str, Any]:
     persisted = _read_persistence()
     persisted["active"] = str(target)
     _write_persistence(persisted)
+
+    # Invalidate caches that depend on claude_home
+    _invalidate_claude_md_cache()
 
     logger.info("Switched active instance to %s", target)
     return _build_instance_metadata(target)
