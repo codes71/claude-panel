@@ -25,6 +25,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import { useThemeMode } from "./ThemeContext";
 import InstanceSwitcher from "./components/InstanceSwitcher";
 import ErrorBoundary from "./components/ErrorBoundary";
+import UpdateBadge from "./components/UpdateBadge";
 
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -231,6 +232,7 @@ export default function App() {
         >
           <InstanceSwitcher variant="header" />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <UpdateBadge />
             <Tooltip title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
               <IconButton size="small" onClick={toggleTheme} sx={{ color: "text.secondary" }}>
                 {mode === "dark" ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}

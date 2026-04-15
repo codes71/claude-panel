@@ -1,12 +1,24 @@
 """CLAUDE.md file management — list, read, write."""
 
 import os
+import time
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from claude_panel.config import settings
 from claude_panel.services.backup import safe_write_text
 from claude_panel.services.claude_md_lint_service import lint_claude_md
 from claude_panel.services.token_estimator import estimate_file_tokens
+
+@dataclass
+class _CacheEntry:
+    data: dict
+    created_at: float = 0.0
+    file_mtimes: dict[str, float] = field(default_factory=dict)
+
+_cache: _CacheEntry | None = None
+_CACHE_TTL: float = 300.0  # 5 minutes hard TTL
+
 
 SKIP_DIRS = {
     ".git", ".cache", "node_modules", "__pycache__", ".venv", "venv",
@@ -112,18 +124,51 @@ def _collect_lint_issues(files: list[dict]) -> list[dict]:
     return issues
 
 
+def _mtimes_unchanged(snapshot: dict[str, float]) -> bool:
+    """Check if cached file mtimes still match disk. Cheap staleness check."""
+    for path_str, expected_mtime in snapshot.items():
+        try:
+            actual = Path(path_str).stat().st_mtime
+            if actual != expected_mtime:
+                return False
+        except OSError:
+            return False
+    return True
+
+
+def _cache_invalidate() -> None:
+    """Invalidate the CLAUDE.md scan cache. Call after any mutation."""
+    global _cache
+    _cache = None
+
+
 def list_claude_md_files() -> dict:
     """List all CLAUDE.md files with metadata and tree structure."""
+    global _cache
+    now = time.monotonic()
+
+    if _cache is not None and (now - _cache.created_at) < _CACHE_TTL:
+        if _mtimes_unchanged(_cache.file_mtimes):
+            return _cache.data
+
+    # Full rebuild (existing logic)
     files = _find_claude_md_files()
     total_tokens = sum(f["token_estimate"] for f in files)
     tree = _build_tree(files)
-    return {
+    result = {
         "files": files,
         "total_tokens": total_tokens,
         "tree": tree,
         "issues": _collect_lint_issues(files),
         "scan_roots": [str(p) for p in _scan_roots()],
     }
+
+    _cache = _CacheEntry(
+        data=result,
+        created_at=now,
+        file_mtimes={f["path"]: f["last_modified"] for f in files},
+    )
+    return result
 
 
 def _build_tree(files: list[dict]) -> list[dict]:
@@ -225,6 +270,7 @@ def write_claude_md(file_path: str, content: str) -> dict:
         raise ValueError("Can only write to files named CLAUDE.md")
 
     safe_write_text(path, content)
+    _cache_invalidate()
     stat = path.stat()
     return {
         "path": str(path),
@@ -245,6 +291,7 @@ def create_claude_md(file_path: str, content: str = "") -> dict:
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+    _cache_invalidate()
     stat = path.stat()
     return {
         "path": str(path),
@@ -268,4 +315,5 @@ def delete_claude_md(file_path: str) -> dict:
     backup_file(path)
 
     path.unlink()
+    _cache_invalidate()
     return {"deleted": str(path)}

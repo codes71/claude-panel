@@ -23,6 +23,7 @@ from claude_panel.routers import (
     skill_providers,
     instances,
     config_bundle,
+    updates,
 )
 
 
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
     app.include_router(skill_providers.router, prefix="/api")
     app.include_router(instances.router, prefix="/api")
     app.include_router(config_bundle.router, prefix="/api")
+    app.include_router(updates.router, prefix="/api")
 
     @app.on_event("startup")
     async def _restore_active_instance():
@@ -68,6 +70,13 @@ def create_app() -> FastAPI:
                 switch_instance(active)
             except Exception:
                 pass  # Fall back to default ~/.claude
+
+    @app.on_event("startup")
+    async def _initial_update_check():
+        """Pre-warm the update check cache."""
+        import asyncio
+        from claude_panel.services import update_service
+        asyncio.create_task(update_service.check_for_update())
 
     static_dir = Path(__file__).parent / "static"
     if static_dir.exists():
