@@ -38,6 +38,13 @@ Workflow Orchestration
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
+### 7. Version Bump Before PR
+- **Always bump the version number** before creating a pull request
+- `package.json` → `version` field is the source of truth (injected into frontend at build time via `vite.config.ts`)
+- `backend/pyproject.toml` → `version` field for the Python backend
+- Use semver: patch for fixes, minor for features, major for breaking changes
+- If you forget, the PR will ship with a stale version — users won't know they got the update
+
 ## Local Development & npm Package
 
 - Project is globally linked via `npm link` — typing `claude-panel` launches the app
