@@ -641,6 +641,23 @@ export interface InstanceAddRequest {
   path: string;
 }
 
+// ---- Updates ----
+export interface UpdateCheckResponse {
+  current_version: string;
+  latest_version: string;
+  update_available: boolean;
+  install_method: string;
+  checked_at: number;
+  error: string | null;
+}
+
+export interface UpdateApplyResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  output?: string;
+}
+
 // ---- Reliability ----
 
 export interface McpDiagnosticCheck {
