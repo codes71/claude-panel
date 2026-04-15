@@ -18,6 +18,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import MarkdownField from "../../components/MarkdownField";
 
 const VALID_NAME_RE = /^[a-zA-Z0-9_-]+$/;
 
@@ -477,9 +478,7 @@ export default function AgentBuilder({
             <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
               Instructions
             </Typography>
-            <TextField
-              multiline
-              fullWidth
+            <MarkdownField
               minRows={10}
               maxRows={20}
               value={instructions}
@@ -487,10 +486,7 @@ export default function AgentBuilder({
               placeholder="Write agent instructions with markdown sections..."
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "0.8rem",
-                  lineHeight: 1.8,
-                  bgcolor: (t) => alpha(t.palette.background.default, 0.5),
+                  bgcolor: (t: any) => alpha(t.palette.background.default, 0.5),
                 },
               }}
             />

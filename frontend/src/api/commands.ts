@@ -12,6 +12,7 @@ export function useCommands() {
   return useQuery({
     queryKey: ["commands"],
     queryFn: () => get<CommandListResponse>("/commands"),
+    staleTime: 60_000,
   });
 }
 
@@ -21,6 +22,7 @@ export function useCommandDetail(namespace: string | null, name: string | null) 
     queryKey: ["command", namespace, name],
     queryFn: () => get<CommandDetail>(`/commands/${encodeURIComponent(ns!)}/${encodeURIComponent(name!)}`),
     enabled: namespace !== null && name !== null,
+    staleTime: 30_000,
   });
 }
 

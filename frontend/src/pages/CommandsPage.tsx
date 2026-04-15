@@ -154,7 +154,7 @@ export default function CommandsPage() {
         </Button>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, minHeight: 500 }}>
+      <Box sx={{ display: "flex", gap: 2, minHeight: 500, height: "calc(100vh - 180px)" }}>
         <CommandTree
           commands={commands}
           namespaces={namespaces}
