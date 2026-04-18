@@ -34,6 +34,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useMarketplace, useInstallPlugin, useUninstallPlugin, useAddProvider } from "../api/marketplace";
 import type { MarketplacePlugin } from "../types";
 import LoadingCard from "../components/LoadingCard";
+import { SUGGESTED_MARKETPLACES, isMarketplaceSuggestionInstalled } from "../data/suggestedMarketplaces";
 
 export default function MarketplacePage() {
   const { data, isLoading, error } = useMarketplace();
@@ -141,6 +142,17 @@ export default function MarketplacePage() {
     });
   };
 
+  const handleAddSuggested = (source: string) => {
+    addProvider.mutate(source, {
+      onSuccess: (res) => {
+        setToast({ msg: res.message || `Added ${source}`, severity: "success" });
+      },
+      onError: (e) => {
+        setToast({ msg: (e as Error).message, severity: "error" });
+      },
+    });
+  };
+
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
@@ -173,6 +185,49 @@ export default function MarketplacePage() {
             Add Source
           </Button>
         </Box>
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+          Suggested sources
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Add an official catalog so the plugin list is not empty on a fresh install. Requires the{" "}
+          <code style={{ fontFamily: "monospace" }}>claude</code> CLI on your PATH.
+        </Typography>
+        <Grid container spacing={2}>
+          {SUGGESTED_MARKETPLACES.map((s) => {
+            const added = isMarketplaceSuggestionInstalled(s, marketplaces);
+            return (
+              <Grid key={s.source} size={{ xs: 12, sm: 6 }}>
+                <Card variant="outlined">
+                  <CardContent sx={{ py: 2, "&:last-child": { pb: 2 } }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      {s.title}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontFamily: "monospace", display: "block", mb: 1, wordBreak: "break-all" }}
+                    >
+                      {s.source}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                      {s.shortDescription}
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant={added ? "outlined" : "contained"}
+                      disabled={added || addProvider.isPending}
+                      onClick={() => handleAddSuggested(s.source)}
+                    >
+                      {added ? "Added" : "Add"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
       </Box>
 
       <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap", alignItems: "center" }}>
