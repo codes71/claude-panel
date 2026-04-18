@@ -50,7 +50,7 @@ wheels = [
 
 [[package]]
 name = "claude-panel-backend"
-version = "1.5.4"
+version = "1.5.5"
 source = { editable = "backend" }
 dependencies = [
     { name = "fastapi" },

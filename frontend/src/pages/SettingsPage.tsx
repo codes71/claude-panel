@@ -37,6 +37,7 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import { useSettings, useUpdateSettings } from "../api/settings";
 import { CLAUDE_ENV_CATALOG, ENV_CATALOG_CATEGORIES, DOC_URL } from "../data/claudeEnvCatalog";
 import { filterClaudeEnvCatalog } from "../lib/envCatalogFilter";
+import { envFieldToRows, envFieldKeys } from "../lib/normalizeSettingsEnv";
 
 interface EnvRow {
   key: string;
@@ -69,7 +70,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (data) {
-      const rows = Object.entries(data.env ?? {}).map(([key, value]) => ({ key, value }));
+      const rows = envFieldToRows(data.env);
       const initial = rows.length > 0 ? rows : [{ key: "", value: "" }];
       setEnvRows(initial);
       setSavedEnvRows(initial);
@@ -97,7 +98,7 @@ export default function SettingsPage() {
     // Find deleted keys
     if (data) {
       const currentKeys = new Set(envUpdates.map((e) => e.key));
-      for (const key of Object.keys(data.env ?? {})) {
+      for (const key of envFieldKeys(data.env)) {
         if (!currentKeys.has(key)) {
           envUpdates.push({ key, value: null });
         }

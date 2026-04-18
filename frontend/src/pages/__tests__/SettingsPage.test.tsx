@@ -34,6 +34,26 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Environment Variables")).toBeInTheDocument();
   });
 
+  it("renders env stored as Claude array-of-objects (not index/object garbage)", () => {
+    mockedUseSettings.mockReturnValue({
+      data: {
+        env: [
+          { key: "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS", value: "1" },
+          { key: "CLAUDE_CODE_NO_FLICKER", value: "1" },
+        ],
+        skipDangerousModePermissionPrompt: false,
+        statusLine: null,
+        enabledPlugins: {},
+      },
+      isLoading: false,
+      error: null,
+    } as any);
+    render(<SettingsPage />, { wrapper });
+    expect(screen.getByDisplayValue("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("CLAUDE_CODE_NO_FLICKER")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("[object Object]")).not.toBeInTheDocument();
+  });
+
   it("renders with empty data (instance switch scenario)", () => {
     mockedUseSettings.mockReturnValue({
       data: {

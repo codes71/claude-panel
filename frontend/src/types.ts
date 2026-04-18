@@ -72,7 +72,8 @@ export interface StatusLineConfig {
 }
 
 export interface SettingsData {
-  env: Record<string, string>;
+  /** Map or Claude-style `{ key, value }[]` — normalize with `envFieldToRows` in UI. */
+  env?: Record<string, string> | Array<{ key: string; value?: string | null }>;
   statusLine: StatusLineConfig | null;
   enabledPlugins: Record<string, boolean>;
   skipDangerousModePermissionPrompt: boolean;
