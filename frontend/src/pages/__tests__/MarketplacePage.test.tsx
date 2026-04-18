@@ -69,4 +69,15 @@ describe("MarketplacePage", () => {
     render(<MarketplacePage />, { wrapper });
     expect(screen.getByPlaceholderText("Search plugins...")).toBeInTheDocument();
   });
+
+  it("shows Suggested sources with official marketplace card", () => {
+    mockedUseMarketplace.mockReturnValue({
+      data: { marketplaces: [], plugins: [], total_available: 0, total_installed: 0 },
+      isLoading: false,
+      error: null,
+    } as any);
+    render(<MarketplacePage />, { wrapper });
+    expect(screen.getByText("Suggested sources")).toBeInTheDocument();
+    expect(screen.getByText("Official Anthropic plugins")).toBeInTheDocument();
+  });
 });
