@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 vi.mock("../../api/settings", () => ({
   useSettings: vi.fn(),
   useUpdateSettings: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useUpdateEnvVars: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
 
 import SettingsPage from "../SettingsPage";

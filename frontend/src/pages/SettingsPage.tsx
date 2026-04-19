@@ -21,7 +21,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import SaveIcon from "@mui/icons-material/Save";
-import { useSettings, useUpdateSettings } from "../api/settings";
+import { useSettings, useUpdateEnvVars, useUpdateSettings } from "../api/settings";
 
 interface EnvRow {
   key: string;
@@ -31,6 +31,7 @@ interface EnvRow {
 export default function SettingsPage() {
   const { data, isLoading, error } = useSettings();
   const updateSettings = useUpdateSettings();
+  const updateEnvVars = useUpdateEnvVars();
 
   const [envRows, setEnvRows] = useState<EnvRow[]>([]);
   const [savedEnvRows, setSavedEnvRows] = useState<EnvRow[]>([]);
@@ -74,16 +75,13 @@ export default function SettingsPage() {
       }
     }
 
-    updateSettings.mutate(
-      { env: envUpdates },
-      {
-        onSuccess: () => {
-          setSavedEnvRows([...envRows]);
-          setToast({ msg: "Environment variables saved", severity: "success" });
-        },
-        onError: (e) => setToast({ msg: (e as Error).message, severity: "error" }),
+    updateEnvVars.mutate(envUpdates, {
+      onSuccess: () => {
+        setSavedEnvRows([...envRows]);
+        setToast({ msg: "Environment variables saved", severity: "success" });
       },
-    );
+      onError: (e) => setToast({ msg: (e as Error).message, severity: "error" }),
+    });
   };
 
   const handleToggleDangerous = (checked: boolean) => {
@@ -124,7 +122,7 @@ export default function SettingsPage() {
                 startIcon={<SaveIcon />}
                 onClick={handleSaveEnv}
                 variant="contained"
-                disabled={updateSettings.isPending || !envDirty}
+                disabled={updateEnvVars.isPending || !envDirty}
               >
                 {envDirty ? "Save*" : "Save"}
               </Button>

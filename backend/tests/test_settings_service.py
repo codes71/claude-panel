@@ -34,6 +34,29 @@ class TestUpdateSettings:
         result = settings_service.update_settings({"env": {"NEW": "val"}})
         assert result["env"] == {"NEW": "val"}
 
+    def test_coerces_list_env_to_dict(self, mock_settings):
+        """Guard against the regression where `env` was saved as an array.
+
+        Claude Code rejects `env` unless it is a `Record<string, string>`.
+        """
+        result = settings_service.update_settings(
+            {"env": [{"key": "FOO", "value": "bar"}, {"key": "BAZ", "value": "qux"}]}
+        )
+        assert result["env"] == {"FOO": "bar", "BAZ": "qux"}
+
+    def test_coerces_list_env_drops_invalid_entries(self, mock_settings):
+        result = settings_service.update_settings(
+            {
+                "env": [
+                    {"key": "KEEP", "value": "yes"},
+                    {"key": "", "value": "blank-key"},
+                    {"key": "DROP", "value": None},
+                    "not-a-dict",
+                ]
+            }
+        )
+        assert result["env"] == {"KEEP": "yes"}
+
 
 class TestEnvVars:
     def test_get_env_vars(self, mock_settings):

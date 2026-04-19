@@ -27,8 +27,37 @@ def write_settings(data: dict) -> Path | None:
     return safe_write_json(_settings_path(), data)
 
 
+def _coerce_env_shape(value: object) -> dict[str, str]:
+    """Convert Claude-style `[{key, value}, ...]` env into the canonical dict shape.
+
+    Claude Code's `settings.json` requires `env` to be a `Record<string, string>`.
+    If a caller sends the list-of-pairs shape (the `PATCH /settings/env` API contract),
+    coerce it here so the generic settings merge never writes a malformed array.
+    """
+    if isinstance(value, dict):
+        return {str(k): str(v) for k, v in value.items() if v is not None}
+    if isinstance(value, list):
+        out: dict[str, str] = {}
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            key = item.get("key")
+            val = item.get("value")
+            if not isinstance(key, str) or key.strip() == "" or val is None:
+                continue
+            out[key] = str(val)
+        return out
+    return {}
+
+
 def update_settings(updates: dict) -> dict:
-    """Merge updates into settings.json (shallow merge at top level)."""
+    """Merge updates into settings.json (shallow merge at top level).
+
+    Coerces `env` into the canonical dict shape to prevent callers from writing
+    the list-of-pairs form that Claude Code rejects.
+    """
+    if "env" in updates:
+        updates = {**updates, "env": _coerce_env_shape(updates["env"])}
     current = read_settings()
     current.update(updates)
     safe_write_json(_settings_path(), current)

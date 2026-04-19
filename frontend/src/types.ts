@@ -84,8 +84,12 @@ export interface EnvVarUpdate {
   value: string | null;
 }
 
+/**
+ * Generic settings PATCH body. `env` is intentionally excluded —
+ * env mutations must use `useUpdateEnvVars` (hits `PATCH /settings/env`)
+ * so the backend can coerce the list-of-pairs into the canonical dict shape.
+ */
 export interface SettingsUpdateRequest {
-  env?: EnvVarUpdate[];
   statusLine?: StatusLineConfig;
   enabledPlugins?: Record<string, boolean>;
   skipDangerousModePermissionPrompt?: boolean;
