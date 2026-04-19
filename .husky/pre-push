@@ -1,0 +1,18 @@
+#
+# Pre-push quality gate.
+# Mirrors the CI workflow in .github/workflows/ci.yml so anything that
+# fails on GitHub Actions fails here first. To bypass in a true emergency:
+#   git push --no-verify
+#
+set -e
+
+echo "[pre-push] backend pytest"
+uv run --directory backend pytest tests/ --quiet
+
+echo "[pre-push] frontend typecheck"
+( cd frontend && npx tsc --noEmit )
+
+echo "[pre-push] frontend vitest"
+( cd frontend && npm run test -- --run --reporter=dot )
+
+echo "[pre-push] all checks passed"

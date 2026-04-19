@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node bin/claudeboard.js",
     "build:frontend": "node scripts/build-frontend.mjs",
-    "prepack": "npm --prefix frontend ci && npm run build:frontend"
+    "prepack": "npm --prefix frontend ci && npm run build:frontend",
+    "prepare": "husky"
   },
   "files": [
     "bin",
@@ -48,5 +49,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
   }
 }
